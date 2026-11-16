@@ -1,0 +1,33 @@
+# Local Navidrome for end-to-end testing. See README "Development".
+#
+#   docker compose up -d          # generates test music, starts Navidrome on :4533
+#   node dev/dev.mjs seed         # creates users and playlists
+#   node dev/dev.mjs replace      # deletes the original album and rescans
+#
+# Admin: admin / admin  ·  second user: bob / bob
+
+services:
+  music:
+    image: alpine:3.22
+    volumes:
+      - ./dev/music:/music
+      - ./dev/generate-music.sh:/generate-music.sh:ro
+    command: sh -c "apk add --no-cache ffmpeg >/dev/null && sh /generate-music.sh /music"
+
+  navidrome:
+    image: deluan/navidrome:0.64.2
+    depends_on:
+      music:
+        condition: service_completed_successfully
+    ports:
+      - '4533:4533'
+    environment:
+      ND_LOGLEVEL: info
+      ND_DEVAUTOCREATEADMINPASSWORD: admin
+      ND_SCANNER_SCHEDULE: '0'
+      ND_SCANNER_WATCHERWAIT: 2s
+      ND_AUTHREQUESTLIMIT: '0'
+      ND_ENABLEINSIGHTSCOLLECTOR: 'false'
+    volumes:
+      - ./dev/music:/music:ro
+      - ./dev/data:/data
