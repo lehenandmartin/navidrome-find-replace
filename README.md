@@ -21,30 +21,13 @@ Everything happens in your browser: the page talks directly to your Navidrome se
 
 ## Screenshots
 
-**Search as you type**, with cover, album, year and format. Here, the studio version of *Like a Prayer* is about to be replaced by the one from *Celebration*:
+**Pick the track to replace, then its new version.** Search as you type, with cover, album, year, format and duration:
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/search-dark.png">
-  <img src="docs/screenshots/search.png" alt="Search results for “like a prayer”: the studio album version and the Celebration version" width="800">
-</picture>
+<img src="docs/screenshots/search.png" alt="The studio version of Like a Prayer is picked; the replacement search lists the Celebration and Immaculate Collection versions" width="800">
 
-**Preview before anything changes**: each affected playlist, the position of every occurrence, and a warning when the new track is already in the playlist:
+**Preview before anything changes**: every affected playlist, the position of each occurrence, and a warning when the new track is already in the playlist:
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/impact-dark.png">
-  <img src="docs/screenshots/impact.png" alt="Impact preview: three playlists affected, a duplicate warning on Road Trip" width="800">
-</picture>
-
-**Album → album**: an old MP3 rip of *Ray of Light* was replaced by a new one. Its files are now missing; the suggestion at the top found the new release, and every track is paired automatically:
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/album-dark.png">
-  <img src="docs/screenshots/album.png" alt="Album pairing: 13 missing tracks of the old rip matched to the new release" width="800">
-</picture>
-
-**Verified, backed up, undoable**:
-
-<img src="docs/screenshots/report.png" alt="Report: three playlists updated and verified, with backup download and undo" width="800">
+<img src="docs/screenshots/impact.png" alt="Impact preview: three playlists affected, a duplicate warning on Road Trip" width="800">
 
 ## How to use it
 

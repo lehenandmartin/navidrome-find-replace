@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks'
 import type { Navidrome } from '../api/client'
 import { computePlaylistChange, toReplacementMap, type PlaylistChange } from '../core/diff'
 import { describeError } from '../core/errors'
+import { formatDuration } from '../core/mappers'
 import { mapLimit } from '../core/pool'
 import type { PlaylistInfo, Replacement, Track } from '../core/types'
 import { applyChanges, isEditable, type ApplyReport } from '../core/workflow'
@@ -129,7 +130,7 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
     return (
       <>
         {t.title} {t.missing && <Badge kind="error">missing</Badge>}
-        <div class="dim small">{[t.album, t.year, t.suffix?.toUpperCase()].filter(Boolean).join(' · ')}</div>
+        <div class="dim small">{[t.album, t.year, t.suffix?.toUpperCase(), formatDuration(t.duration)].filter(Boolean).join(' · ')}</div>
       </>
     )
   }
