@@ -122,6 +122,18 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
     return t ? `${t.title}${t.album ? ` (${t.album})` : ''}` : id
   }
 
+  /** Track cell: title, then album · year · format, so two releases of one album stay distinguishable. */
+  const trackCell = (id: string) => {
+    const t = byId.get(id)
+    if (!t) return <span class="dim">{id}</span>
+    return (
+      <>
+        {t.title} {t.missing && <Badge kind="error">missing</Badge>}
+        <div class="dim small">{[t.album, t.year, t.suffix?.toUpperCase()].filter(Boolean).join(' · ')}</div>
+      </>
+    )
+  }
+
   return (
     <section class="stack">
       <div class="row-between">
@@ -184,8 +196,8 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
                         {c.occurrences.map((o) => (
                           <tr key={o.position}>
                             <td class="num">{o.position}</td>
-                            <td>{title(o.oldId)}</td>
-                            <td>{title(o.newId)}</td>
+                            <td>{trackCell(o.oldId)}</td>
+                            <td>{trackCell(o.newId)}</td>
                           </tr>
                         ))}
                       </tbody>

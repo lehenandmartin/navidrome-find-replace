@@ -82,7 +82,7 @@ export function AlbumMode({ client, prefill, onPreview }: Props) {
       {pairs.length > 0 && newTracks && (
         <>
           <div class="summary-line">
-            {counts.ok ? <Badge kind="ok">{plural(counts.ok, 'match')}</Badge> : null}
+            {counts.ok ? <Badge kind="ok">{plural(counts.ok, 'match', 'matches')}</Badge> : null}
             {counts.uncertain ? <Badge kind="warn">{counts.uncertain} to check</Badge> : null}
             {counts.unmatched ? <Badge kind="error">{counts.unmatched} unmatched</Badge> : null}
             {counts.manual ? <Badge kind="info">{counts.manual} manual</Badge> : null}
