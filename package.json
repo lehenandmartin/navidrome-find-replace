@@ -1,5 +1,5 @@
 {
-  "name": "navidrome-playlist-replace",
+  "name": "navidrome-find-replace",
   "version": "1.0.0",
   "private": true,
   "description": "Find and replace tracks across your Navidrome playlists, right from your browser.",

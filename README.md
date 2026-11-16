@@ -1,20 +1,21 @@
-<h1 align="center">Navidrome playlist replace</h1>
+<h1 align="center">Find &amp; Replace Tracks</h1>
+<p align="center"><em>for Navidrome</em></p>
 <h3 align="center">Swap a track, or a whole album, for another release in all your Navidrome playlists, right from your browser.</h3>
 
 <p align="center">
-  <img src="https://img.shields.io/github/license/lehenandmartin/navidrome-playlist-replace" alt="License">
+  <img src="https://img.shields.io/github/license/lehenandmartin/navidrome-find-replace" alt="License">
   <img src="https://img.shields.io/badge/TypeScript%20%2B%20Preact-static%20site-3178C6?logo=typescript&logoColor=white" alt="TypeScript + Preact, static site">
 </p>
 
 <p align="center">
-  <a href="https://lehenandmartin.github.io/navidrome-playlist-replace/"><strong>Open Navidrome playlist replace</strong></a> — runs in your browser, nothing to install
+  <a href="https://lehenandmartin.github.io/navidrome-find-replace/"><strong>Open Find &amp; Replace Tracks</strong></a> — runs in your browser, nothing to install
 </p>
 
 ---
 
 When you replace an album in your library with another release (a remaster, another edition…), Navidrome gives the new files new track ids. Your playlists keep pointing at the old tracks: these show up as missing once the files are gone, and disappear from the playlists for good when missing files are purged.
 
-**The easiest way to use it is the hosted version: [lehenandmartin.github.io/navidrome-playlist-replace](https://lehenandmartin.github.io/navidrome-playlist-replace/).** Enter your server address, username and password, pick the old and the new release, check the preview, and apply.
+**The easiest way to use it is the hosted version: [lehenandmartin.github.io/navidrome-find-replace](https://lehenandmartin.github.io/navidrome-find-replace/).** Enter your server address, username and password, pick the old and the new release, check the preview, and apply.
 
 Everything happens in your browser: the page talks directly to your Navidrome server. There is no backend, no analytics, nothing loaded from a CDN. Your password is never stored; the session token stays in the tab (`sessionStorage`) and is erased when you sign out or close the tab. Only the server address is remembered, for convenience.
 

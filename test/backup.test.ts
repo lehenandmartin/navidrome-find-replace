@@ -24,10 +24,10 @@ describe('backup', () => {
   it.each([
     ['not json', /not valid JSON/],
     ['{}', /not a playlist backup/],
-    ['{"format":"navidrome-playlist-replace-backup","version":2}', /Unsupported backup version/],
-    ['{"format":"navidrome-playlist-replace-backup","version":1,"createdAt":"x","server":"s","username":"u"}', /incomplete/],
+    ['{"format":"navidrome-find-replace-backup","version":2}', /Unsupported backup version/],
+    ['{"format":"navidrome-find-replace-backup","version":1,"createdAt":"x","server":"s","username":"u"}', /incomplete/],
     [
-      '{"format":"navidrome-playlist-replace-backup","version":1,"createdAt":"x","server":"s","username":"u","playlists":[{"id":"p","name":"n","trackIds":[1]}]}',
+      '{"format":"navidrome-find-replace-backup","version":1,"createdAt":"x","server":"s","username":"u","playlists":[{"id":"p","name":"n","trackIds":[1]}]}',
       /#1 .*malformed/,
     ],
   ])('rejects %s', (text, msg) => {

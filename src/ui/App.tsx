@@ -65,7 +65,9 @@ export function App() {
   return (
     <div class="app">
       <header class="topbar">
-        <div class="brand">Navidrome playlist replace</div>
+        <div class="brand">
+          Find &amp; Replace Tracks <span class="dim">for Navidrome</span>
+        </div>
         <div class="who">
           <span class="dim">{client.session.serverUrl.replace(/^https?:\/\//, '')}</span>
           <span>

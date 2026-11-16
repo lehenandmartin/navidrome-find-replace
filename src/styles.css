@@ -169,6 +169,10 @@ a,
   flex-direction: column;
   gap: 16px;
 }
+.subtitle {
+  color: var(--dim);
+  font-style: italic;
+}
 .lead {
   color: var(--dim);
 }

@@ -13,7 +13,7 @@ export interface Session {
   serverVersion?: string
 }
 
-const KEY = 'nd-playlist-replace.session'
+const KEY = 'navidrome-find-replace.session'
 
 export function loadSession(): Session | null {
   try {

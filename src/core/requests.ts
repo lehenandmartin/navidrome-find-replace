@@ -1,6 +1,6 @@
 /** Request builders for the Subsonic and Navidrome native APIs. Pure: no fetch here. */
 
-export const CLIENT_NAME = 'navidrome-playlist-replace'
+export const CLIENT_NAME = 'navidrome-find-replace'
 export const SUBSONIC_API_VERSION = '1.16.1'
 /** Above this, a GET URL risks being rejected by servers or proxies. */
 export const MAX_GET_URL_LENGTH = 6000

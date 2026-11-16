@@ -1,6 +1,6 @@
 import type { PlaylistContent } from './types'
 
-export const BACKUP_FORMAT = 'navidrome-playlist-replace-backup'
+export const BACKUP_FORMAT = 'navidrome-find-replace-backup'
 export const BACKUP_VERSION = 1
 
 export interface PlaylistBackup {

@@ -3,7 +3,7 @@ import type { Navidrome } from '../api/client'
 import { login } from '../api/login'
 import { ErrorBox } from './util'
 
-const LAST_SERVER_KEY = 'nd-playlist-replace.lastServer'
+const LAST_SERVER_KEY = 'navidrome-find-replace.lastServer'
 
 function lastServer(): string {
   try {
@@ -44,7 +44,10 @@ export function Login({ onLogin }: { onLogin: (c: Navidrome, warning?: string) =
 
   return (
     <main class="login">
-      <h1>Navidrome playlist replace</h1>
+      <div>
+        <h1>Find &amp; Replace Tracks</h1>
+        <p class="subtitle">for Navidrome</p>
+      </div>
       <p class="lead">Replace a track, or a whole album, by another release in all your Navidrome playlists. Preview first, undo anytime.</p>
       <form onSubmit={submit} class="card stack">
         <label>

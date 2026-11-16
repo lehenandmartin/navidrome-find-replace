@@ -31,7 +31,7 @@ describe('buildSubsonicRequest', () => {
   it('builds a GET with auth params', () => {
     const r = buildSubsonicRequest('https://h', auth, 'ping')
     expect(r.init.method).toBe('GET')
-    expect(r.url).toBe('https://h/rest/ping?u=alice&t=tok&s=salt&v=1.16.1&c=navidrome-playlist-replace&f=json')
+    expect(r.url).toBe('https://h/rest/ping?u=alice&t=tok&s=salt&v=1.16.1&c=navidrome-find-replace&f=json')
   })
 
   it('builds a form POST with repeated params in order', () => {
@@ -39,7 +39,7 @@ describe('buildSubsonicRequest', () => {
     expect(r.url).toBe('https://h/nd/rest/createPlaylist')
     expect(r.init.method).toBe('POST')
     expect(r.init.headers).toEqual({ 'Content-Type': 'application/x-www-form-urlencoded' })
-    expect(r.init.body).toBe('u=alice&t=tok&s=salt&v=1.16.1&c=navidrome-playlist-replace&f=json&playlistId=p1&songId=b&songId=a&songId=b')
+    expect(r.init.body).toBe('u=alice&t=tok&s=salt&v=1.16.1&c=navidrome-find-replace&f=json&playlistId=p1&songId=b&songId=a&songId=b')
   })
 
   it('encodes special characters', () => {
