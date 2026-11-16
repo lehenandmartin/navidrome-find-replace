@@ -488,22 +488,26 @@ details summary {
   cursor: pointer;
   color: var(--accent);
 }
-.candidates {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-left: 58px;
+.suggest-panel {
+  border-color: var(--warn);
 }
-.candidate {
+.suggestion {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
-@media (max-width: 560px) {
-  .candidates {
-    padding-left: 0;
-  }
+.suggestion:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+.suggestion > button {
+  flex: none;
+}
+.suggestion details {
+  margin-top: 2px;
 }
 .confirm {
   border-color: var(--accent);

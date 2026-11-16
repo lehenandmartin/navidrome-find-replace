@@ -8,12 +8,18 @@ import { Impact } from './Impact'
 import { Login } from './Login'
 import { Report } from './Report'
 import { Restore } from './Restore'
-import { Suggestions } from './Suggestions'
+import { SuggestionsPanel, useSuggestions } from './Suggestions'
 import { TrackMode } from './TrackMode'
 import { Badge } from './util'
 
-type Tab = 'album' | 'track' | 'suggestions' | 'restore'
+type Tab = 'track' | 'album' | 'restore'
 type Stage = { kind: 'build' } | { kind: 'impact'; pairs: Replacement[]; label: string } | { kind: 'report'; pairs: Replacement[]; report: ApplyReport }
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'track', label: 'Track → track' },
+  { id: 'album', label: 'Album → album' },
+  { id: 'restore', label: 'Restore' },
+]
 
 export function App() {
   const [client, setClient] = useState<Navidrome | null>(() => {
@@ -21,9 +27,6 @@ export function App() {
     return s ? new Navidrome(s) : null
   })
   const [warning, setWarning] = useState<string | undefined>()
-  const [tab, setTab] = useState<Tab>('album')
-  const [stage, setStage] = useState<Stage>({ kind: 'build' })
-  const [prefill, setPrefill] = useState<AlbumPrefill | null>(null)
 
   if (!client) {
     return (
@@ -36,31 +39,38 @@ export function App() {
     )
   }
 
-  function logout() {
-    clearSession()
-    setClient(null)
-    setStage({ kind: 'build' })
-    setPrefill(null)
-    setWarning(undefined)
-    setTab('album')
-  }
+  return (
+    <Workspace
+      // A new session gets a fresh workspace (tabs, suggestions…).
+      key={`${client.session.serverUrl}|${client.session.username}`}
+      client={client}
+      warning={warning}
+      onDismissWarning={() => setWarning(undefined)}
+      onLogout={() => {
+        clearSession()
+        setClient(null)
+        setWarning(undefined)
+      }}
+    />
+  )
+}
 
+interface WorkspaceProps {
+  client: Navidrome
+  warning?: string
+  onDismissWarning: () => void
+  onLogout: () => void
+}
+
+function Workspace({ client, warning, onDismissWarning, onLogout }: WorkspaceProps) {
+  const [tab, setTab] = useState<Tab>('track')
+  const [stage, setStage] = useState<Stage>({ kind: 'build' })
+  const [prefill, setPrefill] = useState<AlbumPrefill | null>(null)
   const isAdmin = client.session.isAdmin
+  // Missing files are only listed for administrators, through the native API.
+  const suggestions = useSuggestions(client, isAdmin && client.hasNative)
+
   const preview = (pairs: Replacement[], label: string) => setStage({ kind: 'impact', pairs, label })
-  const tabs: { id: Tab; label: string; disabled?: string }[] = [
-    { id: 'album', label: 'Album → album' },
-    { id: 'track', label: 'Track → track' },
-    ...(isAdmin
-      ? [
-          {
-            id: 'suggestions' as Tab,
-            label: 'Suggestions',
-            disabled: client.hasNative ? undefined : 'Needs the Navidrome native API, which is not reachable in this session.',
-          },
-        ]
-      : []),
-    { id: 'restore', label: 'Restore' },
-  ]
 
   return (
     <div class="app">
@@ -73,7 +83,7 @@ export function App() {
           <span>
             {client.session.username} {isAdmin && <Badge kind="info">admin</Badge>}
           </span>
-          <button class="link" onClick={logout}>
+          <button class="link" onClick={onLogout}>
             Sign out
           </button>
         </div>
@@ -82,40 +92,30 @@ export function App() {
         {warning && (
           <div class="notice notice-warn">
             {warning}{' '}
-            <button class="link" onClick={() => setWarning(undefined)}>
+            <button class="link" onClick={onDismissWarning}>
               Dismiss
             </button>
           </div>
         )}
         {stage.kind === 'build' && (
           <>
+            <SuggestionsPanel
+              client={client}
+              state={suggestions}
+              onUse={(p) => {
+                setPrefill(p)
+                setTab('album')
+              }}
+            />
             <nav class="tabs" role="tablist">
-              {tabs.map((t) => (
-                <button
-                  key={t.id}
-                  role="tab"
-                  aria-selected={tab === t.id}
-                  class={tab === t.id ? 'tab active' : 'tab'}
-                  disabled={!!t.disabled}
-                  title={t.disabled}
-                  onClick={() => setTab(t.id)}
-                >
+              {TABS.map((t) => (
+                <button key={t.id} role="tab" aria-selected={tab === t.id} class={tab === t.id ? 'tab active' : 'tab'} onClick={() => setTab(t.id)}>
                   {t.label}
                 </button>
               ))}
             </nav>
-            {!isAdmin && <p class="fine">The Suggestions tab, based on missing files, is available to administrators only.</p>}
-            {tab === 'album' && <AlbumMode client={client} prefill={prefill} onPreview={preview} />}
             {tab === 'track' && <TrackMode client={client} onPreview={preview} />}
-            {tab === 'suggestions' && (
-              <Suggestions
-                client={client}
-                onUse={(p) => {
-                  setPrefill(p)
-                  setTab('album')
-                }}
-              />
-            )}
+            {tab === 'album' && <AlbumMode client={client} prefill={prefill} onPreview={preview} />}
             {tab === 'restore' && <Restore client={client} />}
           </>
         )}

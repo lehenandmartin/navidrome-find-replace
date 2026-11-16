@@ -23,9 +23,9 @@ Everything happens in your browser: the page talks directly to your Navidrome se
 
 1. **Sign in** with your Navidrome account.
 2. **Choose what to replace:**
+   - *Track → track* (default): for a single track.
    - *Album → album*: search for the old release and the new one. Tracks are paired by disc and track number, with the title as a check ("Song (2011 Remaster)" matches "Song"). Uncertain or missing pairs are highlighted, and every pair can be changed by hand or skipped.
-   - *Track → track*: for a single track.
-   - *Suggestions* (administrators): lists the albums whose files Navidrome flags as missing, finds the most likely replacement in your library, and prefills the album replacement.
+   - *Suggestions* (administrators): right after sign-in, the app looks for albums whose files Navidrome flags as missing and for the most likely replacement in your library. When there are some, they are listed at the top of the page; *Use* prefills the album replacement.
 3. **Preview the impact**: every playlist you own is scanned. For each one affected you see the number of occurrences, their positions and the old → new tracks. Untick a playlist to leave it alone. If a new track is already in a playlist, you get a warning and can choose to drop the replaced entries instead of creating duplicates.
 4. **Apply**. Each playlist is read again (and skipped if it changed since the preview), backed up, rewritten in the exact same order, then read back to check the result. A report lists what was done.
 5. **Undo** right away, or **download the backup** (JSON) and restore it later from the *Restore* tab.

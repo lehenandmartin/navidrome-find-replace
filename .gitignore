@@ -4,3 +4,4 @@ dev/music/
 dev/data/
 *.log
 .DS_Store
+.claude/
