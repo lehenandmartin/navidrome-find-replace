@@ -22,7 +22,6 @@ export const en = {
   'n.replacements': { one: '{n} replacement', other: '{n} replacements' },
   'n.entries': { one: '{n} entry', other: '{n} entries' },
   'n.problems': { one: '{n} problem', other: '{n} problems' },
-  'n.pairs': { one: '{n} pair', other: '{n} pairs' },
   'n.matches': { one: '{n} match', other: '{n} matches' },
   'n.toCheck': { one: '{n} to check', other: '{n} to check' },
   'n.unmatched': { one: '{n} unmatched', other: '{n} unmatched' },
@@ -165,23 +164,6 @@ export const en = {
   'restore.confirm': 'Overwrite the current content of {playlists} with the backup?',
   'restore.yes': 'Yes, restore',
 
-  // fix commands
-  'fix.title': 'Server-side fix commands (admin)',
-  'fix.intro':
-    '{cmd} remaps each missing file onto its replacement for {all} users: ratings, play counts and playlist entries follow. It keeps the old (missing) track id and deletes the new one, so run it before purging missing files.',
-  'fix.all': 'all',
-  'fix.warnStrong': 'These commands are irreversible.',
-  'fix.warnRest': 'Run {cmd} first. They run on the server, with access to the Navidrome database and configuration.',
-  'fix.prefix': 'Command prefix (optional)',
-  'fix.copy': 'Copy',
-  'fix.copied': 'Copied',
-  'fix.download': 'Download .sh',
-  'fix.none': 'No pair qualifies.',
-  'fix.leftOut': { one: '{n} pair left out', other: '{n} pairs left out' },
-  'fix.reasonNotMissing': 'Old track is not flagged as missing (delete its file and rescan first)',
-  'fix.reasonNewMissing': 'New track is itself missing',
-  'fix.reasonOldUsed': 'Old track already used in another command',
-  'fix.reasonNewUsed': 'New track already used as a target in another command',
 
   // workflow
   'wf.changed': 'The playlist changed since the preview. Run the preview again.',

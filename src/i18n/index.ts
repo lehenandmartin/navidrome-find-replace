@@ -56,23 +56,6 @@ export function t(key: Key, params?: Params): string {
   return params ? s.replace(/\{(\w+)\}/g, (m, name: string) => (name in params ? String(params[name]) : m)) : s
 }
 
-/**
- * Like t(), but placeholders may be replaced by rich values (JSX elements).
- * Returns an array suitable as children.
- */
-export function tParts<T>(key: Key, params: Record<string, string | number | T>): (string | T)[] {
-  const s = pick(key, params as Params)
-  const out: (string | T)[] = []
-  let last = 0
-  for (const m of s.matchAll(/\{(\w+)\}/g)) {
-    out.push(s.slice(last, m.index))
-    out.push(m[1] in params ? (params[m[1]] as string | T) : m[0])
-    last = m.index! + m[0].length
-  }
-  out.push(s.slice(last))
-  return out.filter((p) => p !== '')
-}
-
 /** Shorthand for counted nouns: tn('n.tracks', 3) → "3 tracks". */
 export function tn(key: Key, n: number): string {
   return t(key, { n })

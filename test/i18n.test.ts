@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { detectLocale, LOCALES, setLocale, t, tn, tParts, type Key } from '../src/i18n'
+import { detectLocale, LOCALES, setLocale, t, tn, type Key } from '../src/i18n'
 import { parseBackup } from '../src/core/backup'
 
 afterEach(() => setLocale('en'))
@@ -43,13 +43,6 @@ describe('t', () => {
 
   it('leaves unknown placeholders visible', () => {
     expect(t('err.unreachable', {})).toBe('Cannot reach {url}.')
-  })
-})
-
-describe('tParts', () => {
-  it('splits around rich placeholders', () => {
-    const el = { tag: 'code' }
-    expect(tParts('fix.warnRest', { cmd: el })).toEqual(['Run ', el, ' first. They run on the server, with access to the Navidrome database and configuration.'])
   })
 })
 

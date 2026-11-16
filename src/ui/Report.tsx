@@ -1,9 +1,7 @@
 import { useState } from 'preact/hooks'
 import type { Navidrome } from '../api/client'
 import { backupFileName, serializeBackup, type BackupFile } from '../core/backup'
-import type { Replacement } from '../core/types'
 import { restoreBackup, type ApplyReport, type RestoreResult } from '../core/workflow'
-import { FixCommands } from './FixCommands'
 import { t, tn } from '../i18n'
 import { Badge, download, ErrorBox, ProgressBar } from './util'
 
@@ -11,7 +9,7 @@ export function downloadBackup(b: BackupFile) {
   download(backupFileName(b), serializeBackup(b))
 }
 
-export function Report({ client, report, pairs, onNew }: { client: Navidrome; report: ApplyReport; pairs: Replacement[]; onNew: () => void }) {
+export function Report({ client, report, onNew }: { client: Navidrome; report: ApplyReport; onNew: () => void }) {
   const [restore, setRestore] = useState<RestoreResult[] | null>(null)
   const [progress, setProgress] = useState<{ label: string; done: number; total: number } | null>(null)
   const [error, setError] = useState<unknown>(null)
@@ -76,8 +74,6 @@ export function Report({ client, report, pairs, onNew }: { client: Navidrome; re
         <ErrorBox error={error} />
         {restore && <RestoreResults results={restore} />}
       </div>
-
-      {client.session.isAdmin && <FixCommands pairs={pairs} />}
 
       <div class="actions">
         <button class="primary" onClick={onNew}>

@@ -14,7 +14,7 @@ import { onLocaleChange, t, type Key } from '../i18n'
 import { Badge, LanguageSelect } from './util'
 
 type Tab = 'track' | 'album' | 'restore'
-type Stage = { kind: 'build' } | { kind: 'impact'; pairs: Replacement[]; label: string } | { kind: 'report'; pairs: Replacement[]; report: ApplyReport }
+type Stage = { kind: 'build' } | { kind: 'impact'; pairs: Replacement[]; label: string } | { kind: 'report'; report: ApplyReport }
 
 const TABS: { id: Tab; label: Key }[] = [
   { id: 'track', label: 'tab.track' },
@@ -130,14 +130,13 @@ function Workspace({ client, warning, onDismissWarning, onLogout }: WorkspacePro
             pairs={stage.pairs}
             label={stage.label}
             onBack={() => setStage({ kind: 'build' })}
-            onDone={(report) => setStage({ kind: 'report', report, pairs: stage.pairs })}
+            onDone={(report) => setStage({ kind: 'report', report })}
           />
         )}
         {stage.kind === 'report' && (
           <Report
             client={client}
             report={stage.report}
-            pairs={stage.pairs}
             onNew={() => {
               setPrefill(null)
               setStage({ kind: 'build' })

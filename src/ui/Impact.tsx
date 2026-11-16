@@ -6,7 +6,6 @@ import { formatDuration } from '../core/mappers'
 import { mapLimit } from '../core/pool'
 import type { PlaylistInfo, Replacement, Track } from '../core/types'
 import { applyChanges, isEditable, type ApplyReport } from '../core/workflow'
-import { FixCommands } from './FixCommands'
 import { t, tn } from '../i18n'
 import { Badge, ErrorBox, ProgressBar } from './util'
 
@@ -249,7 +248,6 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
               </div>
             </div>
           )}
-          {client.session.isAdmin && <FixCommands pairs={pairs} />}
         </>
       )}
     </section>

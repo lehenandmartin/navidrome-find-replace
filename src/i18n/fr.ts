@@ -23,7 +23,6 @@ export const fr: Dictionary = {
   'n.replacements': { one: '{n} remplacement', other: '{n} remplacements' },
   'n.entries': { one: '{n} entrée', other: '{n} entrées' },
   'n.problems': { one: '{n} problème', other: '{n} problèmes' },
-  'n.pairs': { one: '{n} paire', other: '{n} paires' },
   'n.matches': { one: '{n} correspondance', other: '{n} correspondances' },
   'n.toCheck': { one: '{n} à vérifier', other: '{n} à vérifier' },
   'n.unmatched': { one: '{n} sans correspondance', other: '{n} sans correspondance' },
@@ -165,22 +164,6 @@ export const fr: Dictionary = {
   'restore.confirm': 'Remplacer le contenu actuel de {playlists} par la sauvegarde ?',
   'restore.yes': 'Oui, restaurer',
 
-  'fix.title': 'Commandes de correction côté serveur (admin)',
-  'fix.intro':
-    '{cmd} rattache chaque fichier manquant à son remplacement pour {all} les utilisateurs : notes, écoutes et entrées de playlists suivent. Elle conserve l’ID de l’ancienne piste (manquante) et supprime le nouveau : lancez-la avant de purger les fichiers manquants.',
-  'fix.all': 'tous',
-  'fix.warnStrong': 'Ces commandes sont irréversibles.',
-  'fix.warnRest': 'Lancez d’abord {cmd}. Elles s’exécutent sur le serveur, avec accès à la base de données et à la configuration de Navidrome.',
-  'fix.prefix': 'Préfixe de commande (facultatif)',
-  'fix.copy': 'Copier',
-  'fix.copied': 'Copié',
-  'fix.download': 'Télécharger le .sh',
-  'fix.none': 'Aucune paire ne convient.',
-  'fix.leftOut': { one: '{n} paire écartée', other: '{n} paires écartées' },
-  'fix.reasonNotMissing': 'L’ancienne piste n’est pas marquée manquante (supprimez son fichier et relancez un scan)',
-  'fix.reasonNewMissing': 'La nouvelle piste est elle-même manquante',
-  'fix.reasonOldUsed': 'Ancienne piste déjà utilisée dans une autre commande',
-  'fix.reasonNewUsed': 'Nouvelle piste déjà utilisée comme cible dans une autre commande',
 
   'wf.changed': 'La playlist a changé depuis l’aperçu. Relancez l’aperçu.',
   'wf.verify':

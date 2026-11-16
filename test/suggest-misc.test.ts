@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { buildFixCommands, shellQuote } from '../src/core/commands'
 import { isMixedContent, subsonicError } from '../src/core/errors'
 import { trackFromNative, trackFromSubsonic } from '../src/core/mappers'
 import { mapLimit } from '../src/core/pool'
@@ -44,39 +43,6 @@ describe('candidate ranking', () => {
     const bad = fullScore(missing, c, album('n', ['Foo', 'Bar', 'Baz']))
     expect(good).toBeGreaterThan(bad)
     expect(good).toBeCloseTo(1)
-  })
-})
-
-describe('buildFixCommands', () => {
-  const o = (id: string, missing = true) => track({ id, title: 'T', missing })
-  const n = (id: string) => track({ id, title: 'T', album: 'New' })
-
-  it('emits one command per valid pair, with the warning header', () => {
-    const r = buildFixCommands([{ old: o('m1'), new: n('t1') }], { prefix: 'docker exec navidrome', now: new Date(0) })
-    expect(r.commandCount).toBe(1)
-    expect(r.script).toContain('docker exec navidrome navidrome missing fix m1 t1')
-    expect(r.script).toContain('IRREVERSIBLE')
-    expect(r.script).toContain('docker exec navidrome navidrome backup create')
-  })
-
-  it('skips non-missing sources and reused targets', () => {
-    const r = buildFixCommands([
-      { old: o('m1', false), new: n('t1') },
-      { old: o('m2'), new: n('t2') },
-      { old: o('m3'), new: n('t2') },
-      { old: o('m2'), new: n('t3') },
-    ])
-    expect(r.commandCount).toBe(1)
-    expect(r.skipped.map((s) => s.reason)).toEqual([
-      expect.stringMatching(/not flagged as missing/),
-      expect.stringMatching(/already used as a target/),
-      expect.stringMatching(/already used in another/),
-    ])
-  })
-
-  it('quotes unusual ids', () => {
-    expect(shellQuote('abc123')).toBe('abc123')
-    expect(shellQuote("it's")).toBe(`'it'\\''s'`)
   })
 })
 
