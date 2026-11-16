@@ -25,7 +25,7 @@ describe('matchAlbums', () => {
       ['n3', 'uncertain'],
       ['n4', 'uncertain'],
     ])
-    expect(m.pairs[0].reason).toMatch(/Position differs/)
+    expect(m.pairs[0].reason).toEqual({ code: 'position', d1: 1, t1: 1, d2: 1, t2: 2 })
     expect(m.unusedNew.map((t) => t.id)).toEqual(['n1'])
   })
 
@@ -33,7 +33,7 @@ describe('matchAlbums', () => {
     const old = album('o', ['One', 'Two'])
     const neu = album('n', ['One', 'Totally Different'])
     const m = matchAlbums(old, neu)
-    expect(m.pairs[1]).toMatchObject({ status: 'uncertain', reason: 'Title differs' })
+    expect(m.pairs[1]).toMatchObject({ status: 'uncertain', reason: { code: 'title' } })
     expect(m.pairs[1].new?.id).toBe('n2')
   })
 

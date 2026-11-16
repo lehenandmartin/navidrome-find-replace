@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import type { PlaylistContent } from './types'
 
 export const BACKUP_FORMAT = 'navidrome-find-replace-backup'
@@ -51,21 +52,21 @@ export function parseBackup(text: string): BackupFile {
   try {
     data = JSON.parse(text)
   } catch {
-    throw new BackupError('This file is not valid JSON.')
+    throw new BackupError(t('backup.notJson'))
   }
   const d = data as Partial<BackupFile> | null
   if (!d || typeof d !== 'object' || d.format !== BACKUP_FORMAT) {
-    throw new BackupError('This file is not a playlist backup made by this app.')
+    throw new BackupError(t('backup.notOurs'))
   }
   if (d.version !== BACKUP_VERSION) {
-    throw new BackupError(`Unsupported backup version: ${String(d.version)}.`)
+    throw new BackupError(t('backup.version', { version: String(d.version) }))
   }
   if (!isStr(d.createdAt) || !isStr(d.server) || !isStr(d.username) || !Array.isArray(d.playlists)) {
-    throw new BackupError('The backup is incomplete (missing server, user, date or playlists).')
+    throw new BackupError(t('backup.incomplete'))
   }
   d.playlists.forEach((p, i) => {
     if (!p || !isStr(p.id) || p.id === '' || !isStr(p.name) || !Array.isArray(p.trackIds) || !p.trackIds.every(isStr)) {
-      throw new BackupError(`Playlist #${i + 1} in the backup is malformed.`)
+      throw new BackupError(t('backup.malformed', { n: i + 1 }))
     }
   })
   return d as BackupFile
@@ -75,10 +76,10 @@ export function parseBackup(text: string): BackupFile {
 export function backupWarnings(b: BackupFile, current: { server: string; username: string }): string[] {
   const w: string[] = []
   if (b.server.replace(/\/+$/, '') !== current.server.replace(/\/+$/, '')) {
-    w.push(`This backup was made on ${b.server}, but you are connected to ${current.server}.`)
+    w.push(t('backup.otherServer', { backup: b.server, current: current.server }))
   }
   if (b.username !== current.username) {
-    w.push(`This backup was made by user "${b.username}", but you are signed in as "${current.username}".`)
+    w.push(t('backup.otherUser', { backup: b.username, current: current.username }))
   }
   return w
 }

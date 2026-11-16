@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'preact/hooks'
 import { buildFixCommands } from '../core/commands'
 import type { Replacement } from '../core/types'
-import { download, plural } from './util'
+import { getLocale, t, tn, tParts } from '../i18n'
+import { download } from './util'
 
 /** Admin only: `navidrome missing fix` commands for the validated pairs. */
 export function FixCommands({ pairs }: { pairs: Replacement[] }) {
   const [prefix, setPrefix] = useState('')
   const [copied, setCopied] = useState(false)
-  const result = useMemo(() => buildFixCommands(pairs, { prefix }), [pairs, prefix])
+  const locale = getLocale()
+  const result = useMemo(() => buildFixCommands(pairs, { prefix }), [pairs, prefix, locale])
 
   async function copy() {
     try {
@@ -22,36 +24,31 @@ export function FixCommands({ pairs }: { pairs: Replacement[] }) {
   return (
     <details class="card">
       <summary>
-        <strong>Server-side fix commands (admin)</strong>
+        <strong>{t('fix.title')}</strong>
       </summary>
       <div class="stack">
-        <p>
-          <code>navidrome missing fix</code> remaps each missing file onto its replacement for <em>all</em> users: ratings, play counts
-          and playlist entries follow. It keeps the old (missing) track id and deletes the new one, so run it before purging missing
-          files.
-        </p>
+        <p>{tParts('fix.intro', { cmd: <code>navidrome missing fix</code>, all: <em>{t('fix.all')}</em> })}</p>
         <div class="notice notice-error">
-          <strong>These commands are irreversible.</strong> Run <code>navidrome backup create</code> first. They run on the server,
-          with access to the Navidrome database and configuration.
+          <strong>{t('fix.warnStrong')}</strong> {tParts('fix.warnRest', { cmd: <code>navidrome backup create</code> })}
         </div>
         <label>
-          Command prefix (optional)
+          {t('fix.prefix')}
           <input placeholder="docker exec navidrome" value={prefix} onInput={(e) => setPrefix(e.currentTarget.value)} />
         </label>
         {result.commandCount > 0 ? (
           <>
             <pre class="code">{result.script}</pre>
             <div class="actions">
-              <button onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>
-              <button onClick={() => download('navidrome-missing-fix.sh', result.script, 'text/x-shellscript')}>Download .sh</button>
+              <button onClick={copy}>{copied ? t('fix.copied') : t('fix.copy')}</button>
+              <button onClick={() => download('navidrome-missing-fix.sh', result.script, 'text/x-shellscript')}>{t('fix.download')}</button>
             </div>
           </>
         ) : (
-          <p class="dim">No pair qualifies.</p>
+          <p class="dim">{t('fix.none')}</p>
         )}
         {result.skipped.length > 0 && (
           <details>
-            <summary>{plural(result.skipped.length, 'pair')} left out</summary>
+            <summary>{tn('fix.leftOut', result.skipped.length)}</summary>
             <ul class="small">
               {result.skipped.map((s, i) => (
                 <li key={i}>

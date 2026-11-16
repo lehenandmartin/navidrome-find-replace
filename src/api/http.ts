@@ -1,4 +1,5 @@
 import { AppError, isMixedContent, mixedContentError, networkError } from '../core/errors'
+import { t } from '../i18n'
 
 /**
  * fetch() with readable errors. A request that fails without a response is followed by a
@@ -28,10 +29,6 @@ export async function readJson(res: Response): Promise<unknown> {
   try {
     return JSON.parse(text)
   } catch {
-    throw new AppError(
-      'protocol',
-      'The server sent something that is not JSON.',
-      'Is this really a Navidrome address? A reverse proxy login page can also cause this. ' + text.slice(0, 200),
-    )
+    throw new AppError('protocol', t('err.notJson'), t('err.notJsonDetail', { body: text.slice(0, 200) }))
   }
 }

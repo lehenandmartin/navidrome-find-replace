@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks'
 import type { Navidrome } from '../api/client'
 import { login } from '../api/login'
-import { ErrorBox } from './util'
+import { t, type Key } from '../i18n'
+import { ErrorBox, LanguageSelect } from './util'
 
 const LAST_SERVER_KEY = 'navidrome-find-replace.lastServer'
 
@@ -13,7 +14,7 @@ function lastServer(): string {
   }
 }
 
-export function Login({ onLogin }: { onLogin: (c: Navidrome, warning?: string) => void }) {
+export function Login({ onLogin }: { onLogin: (c: Navidrome, warning?: Key) => void }) {
   const [server, setServer] = useState(lastServer)
   const [username, setUsername] = useState('')
   const [error, setError] = useState<unknown>(null)
@@ -44,14 +45,17 @@ export function Login({ onLogin }: { onLogin: (c: Navidrome, warning?: string) =
 
   return (
     <main class="login">
-      <div>
-        <h1>Find &amp; Replace Tracks</h1>
-        <p class="subtitle">for Navidrome</p>
+      <div class="row-between login-head">
+        <div>
+          <h1>{t('app.title')}</h1>
+          <p class="subtitle">{t('app.subtitle')}</p>
+        </div>
+        <LanguageSelect />
       </div>
-      <p class="lead">Replace a track, or a whole album, by another release in all your Navidrome playlists. Preview first, undo anytime.</p>
+      <p class="lead">{t('login.lead')}</p>
       <form onSubmit={submit} class="card stack">
         <label>
-          Server address
+          {t('login.server')}
           <input
             type="text"
             inputMode="url"
@@ -65,22 +69,19 @@ export function Login({ onLogin }: { onLogin: (c: Navidrome, warning?: string) =
           />
         </label>
         <label>
-          Username
+          {t('login.username')}
           <input value={username} onInput={(e) => setUsername(e.currentTarget.value)} required autoComplete="username" autoCapitalize="none" />
         </label>
         <label>
-          Password
+          {t('login.password')}
           <input name="password" type="password" required autoComplete="current-password" />
         </label>
         <button type="submit" class="primary" disabled={busy}>
-          {busy ? 'Signing in…' : 'Sign in'}
+          {busy ? t('login.submitting') : t('login.submit')}
         </button>
         <ErrorBox error={error} />
       </form>
-      <p class="fine">
-        Everything happens in your browser: requests go straight to your server. Your password is never stored; the session
-        token is kept in this tab only and is erased when you sign out or close the tab.
-      </p>
+      <p class="fine">{t('login.privacy')}</p>
     </main>
   )
 }

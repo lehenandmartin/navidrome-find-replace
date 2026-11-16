@@ -3,6 +3,7 @@ import type { Navidrome } from '../api/client'
 import { formatDuration, formatsOf, trackFromNative } from '../core/mappers'
 import { mapLimit } from '../core/pool'
 import type { AlbumSummary, Track } from '../core/types'
+import { t, tn } from '../i18n'
 import { Badge, Cover, useDebounced } from './util'
 
 type Kind = 'album' | 'song'
@@ -69,7 +70,7 @@ export function SearchBox({ client, kind, label, includeMissing, onPick }: Props
         const todo = out.flatMap((r) => (r.kind === 'album' && !formatCache.has(r.album.id) ? [r.album.id] : []))
         await mapLimit(todo, 3, async (albumId) => {
           formatCache.set(albumId, formatsOf(await client.albumTracks(albumId)))
-          if (id === reqId.current) setTick((t) => t + 1)
+          if (id === reqId.current) setTick((x) => x + 1)
         })
       }
     })().catch(() => {
@@ -107,7 +108,7 @@ export function SearchBox({ client, kind, label, includeMissing, onPick }: Props
         <input
           type="search"
           value={q}
-          placeholder={kind === 'album' ? 'Album or artist name…' : 'Track title or artist…'}
+          placeholder={kind === 'album' ? t('search.placeholderAlbum') : t('search.placeholderSong')}
           onInput={(e) => setQ(e.currentTarget.value)}
           onKeyDown={onKey}
           onFocus={() => results.length && setOpen(true)}
@@ -119,10 +120,10 @@ export function SearchBox({ client, kind, label, includeMissing, onPick }: Props
           autoComplete="off"
         />
       </label>
-      {loading && <span class="search-spinner" aria-label="Searching" />}
+      {loading && <span class="search-spinner" aria-label={t('common.searching')} />}
       {open && (
         <ul class="search-results" id={listId} role="listbox">
-          {results.length === 0 && <li class="search-empty">No results</li>}
+          {results.length === 0 && <li class="search-empty">{t('search.noResults')}</li>}
           {results.map((r, i) => (
             <li
               key={(r.kind === 'album' ? r.album.id : r.track.id) + i}
@@ -150,10 +151,10 @@ function AlbumRow({ client, album }: { client: Navidrome; album: AlbumSummary })
       <Cover client={client} id={album.coverArt} size={40} />
       <div class="media-text">
         <div class="media-title">
-          {album.name} {album.missing && <Badge kind="error">missing</Badge>}
+          {album.name} {album.missing && <Badge kind="error">{t('common.missing')}</Badge>}
         </div>
         <div class="media-sub">
-          {[album.artist, album.year, `${album.songCount} tracks`, formats?.join(' / ')].filter(Boolean).join(' · ')}
+          {[album.artist, album.year, tn('n.tracks', album.songCount), formats?.join(' / ')].filter(Boolean).join(' · ')}
         </div>
       </div>
     </div>
@@ -166,7 +167,7 @@ function SongRow({ client, track }: { client: Navidrome; track: Track }) {
       <Cover client={client} id={track.coverArt} size={40} />
       <div class="media-text">
         <div class="media-title">
-          {track.title} {track.missing && <Badge kind="error">missing</Badge>}
+          {track.title} {track.missing && <Badge kind="error">{t('common.missing')}</Badge>}
         </div>
         <div class="media-sub">
           {[track.artist, track.album, track.year, track.suffix?.toUpperCase(), formatDuration(track.duration)].filter(Boolean).join(' · ')}
@@ -182,7 +183,7 @@ export function AlbumCard({ client, album, onClear }: { client: Navidrome; album
       <AlbumRow client={client} album={album} />
       {onClear && (
         <button type="button" class="link" onClick={onClear}>
-          Change
+          {t('common.change')}
         </button>
       )}
     </div>
@@ -195,7 +196,7 @@ export function TrackCard({ client, track, onClear }: { client: Navidrome; track
       <SongRow client={client} track={track} />
       {onClear && (
         <button type="button" class="link" onClick={onClear}>
-          Change
+          {t('common.change')}
         </button>
       )}
     </div>

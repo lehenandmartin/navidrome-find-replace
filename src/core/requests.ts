@@ -1,4 +1,5 @@
 /** Request builders for the Subsonic and Navidrome native APIs. Pure: no fetch here. */
+import { t } from '../i18n'
 
 export const CLIENT_NAME = 'navidrome-find-replace'
 export const SUBSONIC_API_VERSION = '1.16.1'
@@ -97,15 +98,15 @@ export function nativeQuery(q: NativeQuery): string {
  */
 export function normalizeServerUrl(input: string): string {
   let s = input.trim()
-  if (s === '') throw new Error('Enter the address of your Navidrome server.')
+  if (s === '') throw new Error(t('url.empty'))
   if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) s = 'https://' + s
   let u: URL
   try {
     u = new URL(s)
   } catch {
-    throw new Error('This server address is not a valid URL.')
+    throw new Error(t('url.invalid'))
   }
-  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('The server address must start with http:// or https://.')
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error(t('url.scheme'))
   let path = u.pathname.replace(/\/+$/, '')
   path = path.replace(/\/app(\/.*)?$/, '')
   return `${u.protocol}//${u.host}${path}`

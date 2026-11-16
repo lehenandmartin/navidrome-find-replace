@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks'
+import { useEffect, useState } from 'preact/hooks'
 import { Navidrome } from '../api/client'
 import { clearSession, loadSession } from '../api/session'
 import type { Replacement } from '../core/types'
@@ -10,15 +10,16 @@ import { Report } from './Report'
 import { Restore } from './Restore'
 import { SuggestionsPanel, useSuggestions } from './Suggestions'
 import { TrackMode } from './TrackMode'
-import { Badge } from './util'
+import { onLocaleChange, t, type Key } from '../i18n'
+import { Badge, LanguageSelect } from './util'
 
 type Tab = 'track' | 'album' | 'restore'
 type Stage = { kind: 'build' } | { kind: 'impact'; pairs: Replacement[]; label: string } | { kind: 'report'; pairs: Replacement[]; report: ApplyReport }
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'track', label: 'Track → track' },
-  { id: 'album', label: 'Album → album' },
-  { id: 'restore', label: 'Restore' },
+const TABS: { id: Tab; label: Key }[] = [
+  { id: 'track', label: 'tab.track' },
+  { id: 'album', label: 'tab.album' },
+  { id: 'restore', label: 'tab.restore' },
 ]
 
 export function App() {
@@ -26,7 +27,10 @@ export function App() {
     const s = loadSession()
     return s ? new Navidrome(s) : null
   })
-  const [warning, setWarning] = useState<string | undefined>()
+  const [warning, setWarning] = useState<Key | undefined>()
+  // Re-render everything when the language changes.
+  const [, setLocaleVersion] = useState(0)
+  useEffect(() => onLocaleChange(() => setLocaleVersion((v) => v + 1)), [])
 
   if (!client) {
     return (
@@ -57,7 +61,7 @@ export function App() {
 
 interface WorkspaceProps {
   client: Navidrome
-  warning?: string
+  warning?: Key
   onDismissWarning: () => void
   onLogout: () => void
 }
@@ -76,24 +80,25 @@ function Workspace({ client, warning, onDismissWarning, onLogout }: WorkspacePro
     <div class="app">
       <header class="topbar">
         <div class="brand">
-          Find &amp; Replace Tracks <span class="dim">for Navidrome</span>
+          {t('app.title')} <span class="dim">{t('app.subtitle')}</span>
         </div>
         <div class="who">
           <span class="dim">{client.session.serverUrl.replace(/^https?:\/\//, '')}</span>
           <span>
             {client.session.username} {isAdmin && <Badge kind="info">admin</Badge>}
           </span>
+          <LanguageSelect />
           <button class="link" onClick={onLogout}>
-            Sign out
+            {t('common.signOut')}
           </button>
         </div>
       </header>
       <main class="content">
         {warning && (
           <div class="notice notice-warn">
-            {warning}{' '}
+            {t(warning)}{' '}
             <button class="link" onClick={onDismissWarning}>
-              Dismiss
+              {t('common.dismiss')}
             </button>
           </div>
         )}
@@ -108,9 +113,9 @@ function Workspace({ client, warning, onDismissWarning, onLogout }: WorkspacePro
               }}
             />
             <nav class="tabs" role="tablist">
-              {TABS.map((t) => (
-                <button key={t.id} role="tab" aria-selected={tab === t.id} class={tab === t.id ? 'tab active' : 'tab'} onClick={() => setTab(t.id)}>
-                  {t.label}
+              {TABS.map((x) => (
+                <button key={x.id} role="tab" aria-selected={tab === x.id} class={tab === x.id ? 'tab active' : 'tab'} onClick={() => setTab(x.id)}>
+                  {t(x.label)}
                 </button>
               ))}
             </nav>

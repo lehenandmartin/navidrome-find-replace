@@ -60,6 +60,7 @@ Recent Navidrome versions (checked with 0.64.2) have a command that remaps a mis
 - Only touches playlists you own; smart playlists and playlists synced from files are never modified
 - Large playlists are written with form POST requests, so URL length is not a problem
 - Light and dark themes following your system, works on mobile
+- English and French interface, following your browser's language (switchable at any time)
 
 ## Server requirements
 

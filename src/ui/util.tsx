@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks'
 import { describeError } from '../core/errors'
 import type { Navidrome } from '../api/client'
+import { detectLocale, getLocale, LOCALES, setLocale, t, type Locale } from '../i18n'
 
 export function useDebounced<T>(value: T, ms: number): T {
   const [v, setV] = useState(value)
@@ -69,6 +70,45 @@ export function Badge({ kind, children }: { kind: 'ok' | 'warn' | 'error' | 'inf
   return <span class={`badge badge-${kind}`}>{children}</span>
 }
 
-export function plural(n: number, one: string, many = one + 's'): string {
-  return `${n} ${n === 1 ? one : many}`
+/** Language picker, shown on the sign-in page and in the top bar. */
+export function LanguageSelect() {
+  return (
+    <label class="lang">
+      <span class="visually-hidden">{t('lang.label')}</span>
+      <select value={getLocale()} onChange={(e) => changeLocale(e.currentTarget.value as Locale)} aria-label={t('lang.label')}>
+        {(Object.keys(LOCALES) as Locale[]).map((l) => (
+          <option key={l} value={l}>
+            {LOCALES[l]['lang.name']}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
+const LANG_KEY = 'navidrome-find-replace.lang'
+
+/** Saved choice, else the browser's languages. */
+export function initialLocale(): Locale {
+  try {
+    const saved = localStorage.getItem(LANG_KEY)
+    if (saved && saved in LOCALES) return saved as Locale
+  } catch {
+    /* storage unavailable */
+  }
+  return detectLocale(navigator.languages?.length ? navigator.languages : [navigator.language])
+}
+
+export function changeLocale(l: Locale): void {
+  try {
+    localStorage.setItem(LANG_KEY, l)
+  } catch {
+    /* storage unavailable */
+  }
+  applyLocale(l)
+}
+
+export function applyLocale(l: Locale): void {
+  document.documentElement.lang = l
+  setLocale(l)
 }

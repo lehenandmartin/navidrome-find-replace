@@ -5,7 +5,8 @@ import { mapLimit } from '../core/pool'
 import { candidateQuery, fullScore, groupMissingByAlbum, rankCandidates, type MissingAlbum } from '../core/suggest'
 import type { AlbumSummary } from '../core/types'
 import type { AlbumPrefill } from './AlbumMode'
-import { Badge, Cover, plural } from './util'
+import { t, tn } from '../i18n'
+import { Badge, Cover } from './util'
 
 interface Candidate {
   album: AlbumSummary
@@ -84,31 +85,31 @@ export function SuggestionsPanel({ client, state, onUse }: { client: Navidrome; 
   if (error) {
     return (
       <p class="fine">
-        Could not load suggestions from missing files: {describeError(error).message}{' '}
+        {t('sugg.loadError', { message: describeError(error).message })}{' '}
         <button class="link" onClick={reload}>
-          Retry
+          {t('common.retry')}
         </button>
       </p>
     )
   }
-  if (!rows) return loading ? <p class="fine">Checking for missing files…</p> : null
+  if (!rows) return loading ? <p class="fine">{t('sugg.checking')}</p> : null
   if (rows.length === 0) return null
 
   const visible = showAll ? rows : rows.slice(0, COLLAPSED_COUNT)
   return (
-    <section class="card suggest-panel stack" aria-label="Suggestions">
+    <section class="card suggest-panel stack" aria-label={t('sugg.title')}>
       <div class="row-between">
         <div>
-          <strong>Suggestions</strong>{' '}
-          <Badge kind="warn">{plural(rows.length, 'album')} with missing files</Badge>
-          {loading && <span class="dim small"> · looking for replacements…</span>}
+          <strong>{t('sugg.title')}</strong>{' '}
+          <Badge kind="warn">{t('sugg.withMissing', { albums: tn('n.albums', rows.length) })}</Badge>
+          {loading && <span class="dim small"> · {t('sugg.looking')}</span>}
         </div>
         <div class="actions">
           <button class="link" onClick={reload} disabled={loading}>
-            Refresh
+            {t('sugg.refresh')}
           </button>
           <button class="link" onClick={() => setHidden(!hidden)} aria-expanded={!hidden}>
-            {hidden ? 'Show' : 'Hide'}
+            {hidden ? t('sugg.show') : t('sugg.hide')}
           </button>
         </div>
       </div>
@@ -121,7 +122,7 @@ export function SuggestionsPanel({ client, state, onUse }: { client: Navidrome; 
           </ul>
           {rows.length > COLLAPSED_COUNT && (
             <button class="link" onClick={() => setShowAll(!showAll)}>
-              {showAll ? 'Show fewer' : `Show all ${rows.length}`}
+              {showAll ? t('sugg.showFewer') : t('sugg.showAll', { n: rows.length })}
             </button>
           )}
         </>
@@ -150,13 +151,13 @@ function SuggestionRow({ client, row, onUse }: { client: Navidrome; row: Row; on
         <Cover client={client} id={oldAlbum.coverArt} size={40} />
         <div class="media-text">
           <div class="media-title">
-            {missing.album || '(no album)'} <span class="dim small">{plural(missing.tracks.length, 'missing track')}</span>
+            {missing.album || t('sugg.noAlbum')} <span class="dim small">{tn('n.missingTracks', missing.tracks.length)}</span>
           </div>
           <div class="media-sub">
             {[missing.artist, missing.year].filter(Boolean).join(' · ')}
-            {row.state === 'searching' && ' · searching…'}
-            {row.state === 'error' && ' · search failed'}
-            {row.state === 'done' && !best && ' · no replacement found'}
+            {row.state === 'searching' && ` · ${t('sugg.searching')}`}
+            {row.state === 'error' && ` · ${t('sugg.failed')}`}
+            {row.state === 'done' && !best && ` · ${t('sugg.none')}`}
             {best && (
               <>
                 {' → '}
@@ -168,7 +169,7 @@ function SuggestionRow({ client, row, onUse }: { client: Navidrome; row: Row; on
           </div>
           {others.length > 0 && (
             <details class="small">
-              <summary>{plural(others.length, 'other candidate')}</summary>
+              <summary>{tn('n.otherCandidates', others.length)}</summary>
               <ul class="plain">
                 {others.map((c) => (
                   <li key={c.album.id}>
@@ -186,7 +187,7 @@ function SuggestionRow({ client, row, onUse }: { client: Navidrome; row: Row; on
         </div>
       </div>
       <button onClick={() => use(best)} disabled={row.state === 'searching'}>
-        {best ? 'Use' : 'Pick by hand'}
+        {best ? t('sugg.use') : t('sugg.pick')}
       </button>
     </li>
   )

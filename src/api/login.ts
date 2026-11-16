@@ -1,4 +1,5 @@
 import { AppError, httpError } from '../core/errors'
+import { t, type Key } from '../i18n'
 import { md5, randomSalt } from '../core/md5'
 import { normalizeServerUrl } from '../core/requests'
 import { Navidrome } from './client'
@@ -12,10 +13,10 @@ type Obj = Record<string, unknown>
  * (missing files, full playlist contents). Falls back to Subsonic token auth when that
  * route is unreachable. The password is only used inside this function.
  */
-export async function login(serverInput: string, username: string, password: string): Promise<{ client: Navidrome; warning?: string }> {
+export async function login(serverInput: string, username: string, password: string): Promise<{ client: Navidrome; warning?: Key }> {
   const serverUrl = normalizeServerUrl(serverInput)
   let session: Session | null = null
-  let warning: string | undefined
+  let warning: Key | undefined
 
   try {
     const res = await safeFetch(serverUrl, `${serverUrl}/auth/login`, {
@@ -43,14 +44,13 @@ export async function login(serverInput: string, username: string, password: str
   } catch (e) {
     // Wrong password or mixed content: no point trying the other API.
     if (e instanceof AppError && (e.kind === 'bad-credentials' || e.kind === 'mixed-content' || e.kind === 'unreachable')) throw e
-    if (e instanceof AppError && e.message.startsWith('Too many')) throw e
+    if (e instanceof AppError && e.kind === 'rate-limited') throw e
   }
 
   if (!session) {
     const salt = randomSalt()
     session = { serverUrl, username, isAdmin: false, subsonicToken: md5(password + salt), subsonicSalt: salt, formPost: false }
-    warning =
-      'Signed in through the Subsonic API only: the Navidrome login was not reachable. Missing files cannot be listed, and playlists that contain missing files cannot be modified.'
+    warning = 'login.warnSubsonicOnly'
   }
 
   const client = new Navidrome(session)
@@ -58,7 +58,7 @@ export async function login(serverInput: string, username: string, password: str
   const ping = await client.subsonic('ping', [], { post: false })
   session.serverVersion = typeof ping.serverVersion === 'string' ? ping.serverVersion : undefined
   if (ping.type !== undefined && ping.type !== 'navidrome') {
-    throw new AppError('protocol', `This is a ${String(ping.type)} server, not Navidrome.`)
+    throw new AppError('protocol', t('err.notNavidrome', { type: String(ping.type) }))
   }
 
   try {
@@ -74,8 +74,7 @@ export async function login(serverInput: string, username: string, password: str
       await client.native('/api/keepalive/check')
     } catch {
       session.jwt = undefined
-      warning =
-        'The Navidrome native API (/api) is not reachable, only the Subsonic API. Missing files cannot be listed, and playlists that contain missing files cannot be modified.'
+      warning = 'login.warnNoNative'
     }
   }
 

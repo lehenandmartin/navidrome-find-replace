@@ -1,6 +1,7 @@
 import { createBackup, type BackupFile, type PlaylistBackup } from './backup'
 import { finalIds, firstDifference, sameIds, type PlaylistChange } from './diff'
 import { describeError } from './errors'
+import { t } from '../i18n'
 import type { PlaylistContent, PlaylistInfo } from './types'
 
 /** What the workflow needs from the server. Implemented over HTTP in src/api, faked in tests. */
@@ -43,7 +44,7 @@ async function writeAndVerify(gw: PlaylistGateway, id: string, expected: readonl
   const after = await gw.read(id)
   if (sameIds(after.trackIds, expected)) return undefined
   const i = firstDifference(after.trackIds, expected)
-  return `Verification failed: the playlist now has ${after.trackIds.length} tracks (expected ${expected.length}), first difference at position ${i + 1}. Some tracks may not be accessible to your user.`
+  return t('wf.verify', { actual: after.trackIds.length, expected: expected.length, pos: i + 1 })
 }
 
 /**
@@ -63,7 +64,7 @@ export async function applyChanges(
   const ready: { plan: PlannedChange; current: PlaylistContent }[] = []
 
   for (const [i, plan] of plans.entries()) {
-    onProgress?.('Checking playlists', i, plans.length)
+    onProgress?.(t('progress.checking'), i, plans.length)
     const { change } = plan
     try {
       const current = await gw.read(change.playlistId)
@@ -73,7 +74,7 @@ export async function applyChanges(
           name: change.name,
           status: 'skipped',
           replaced: 0,
-          message: 'The playlist changed since the preview. Run the preview again.',
+          message: t('wf.changed'),
         })
       } else {
         ready.push({ plan, current })
@@ -90,7 +91,7 @@ export async function applyChanges(
   onBackup?.(backup)
 
   for (const [i, { plan, current }] of ready.entries()) {
-    onProgress?.('Updating playlists', i, ready.length)
+    onProgress?.(t('progress.updating'), i, ready.length)
     const expected = finalIds(plan.change, plan.dedupe)
     const base = { playlistId: current.id, name: current.name }
     try {
@@ -104,7 +105,7 @@ export async function applyChanges(
       results.push({ ...base, status: 'failed', replaced: 0, message: describeError(e).message })
     }
   }
-  onProgress?.('Done', 1, 1)
+  onProgress?.(t('progress.done'), 1, 1)
   return { backup, results }
 }
 
@@ -123,7 +124,7 @@ export async function restoreBackup(
 ): Promise<RestoreResult[]> {
   const out: RestoreResult[] = []
   for (const [i, p] of playlists.entries()) {
-    onProgress?.('Restoring playlists', i, playlists.length)
+    onProgress?.(t('progress.restoring'), i, playlists.length)
     try {
       const current = await gw.read(p.id)
       if (sameIds(current.trackIds, p.trackIds)) {
@@ -136,6 +137,6 @@ export async function restoreBackup(
       out.push({ playlistId: p.id, name: p.name, status: 'failed', message: describeError(e).message })
     }
   }
-  onProgress?.('Done', 1, 1)
+  onProgress?.(t('progress.done'), 1, 1)
   return out
 }

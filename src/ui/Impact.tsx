@@ -7,7 +7,8 @@ import { mapLimit } from '../core/pool'
 import type { PlaylistInfo, Replacement, Track } from '../core/types'
 import { applyChanges, isEditable, type ApplyReport } from '../core/workflow'
 import { FixCommands } from './FixCommands'
-import { Badge, ErrorBox, plural, ProgressBar } from './util'
+import { t, tn } from '../i18n'
+import { Badge, ErrorBox, ProgressBar } from './util'
 
 interface Props {
   client: Navidrome
@@ -47,7 +48,7 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
     ;(async () => {
       try {
         const map = toReplacementMap(pairs)
-        setProgress({ label: 'Listing playlists', done: 0, total: 0 })
+        setProgress({ label: t('progress.listing'), done: 0, total: 0 })
         const all = await client.playlists()
         const username = client.session.username
         const editable = all.filter((p) => isEditable(p, username))
@@ -60,7 +61,7 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
           editable,
           4,
           (p) => client.read(p.id),
-          (done, total) => !cancelled && setProgress({ label: 'Reading playlists', done, total }),
+          (done, total) => !cancelled && setProgress({ label: t('progress.reading'), done, total }),
         )
         const changes: PlaylistChange[] = []
         results.forEach((r, i) => {
@@ -119,18 +120,18 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
   }
 
   const title = (id: string) => {
-    const t = byId.get(id)
-    return t ? `${t.title}${t.album ? ` (${t.album})` : ''}` : id
+    const x = byId.get(id)
+    return x ? `${x.title}${x.album ? ` (${x.album})` : ''}` : id
   }
 
   /** Track cell: title, then album · year · format, so two releases of one album stay distinguishable. */
   const trackCell = (id: string) => {
-    const t = byId.get(id)
-    if (!t) return <span class="dim">{id}</span>
+    const x = byId.get(id)
+    if (!x) return <span class="dim">{id}</span>
     return (
       <>
-        {t.title} {t.missing && <Badge kind="error">missing</Badge>}
-        <div class="dim small">{[t.album, t.year, t.suffix?.toUpperCase(), formatDuration(t.duration)].filter(Boolean).join(' · ')}</div>
+        {x.title} {x.missing && <Badge kind="error">{t('common.missing')}</Badge>}
+        <div class="dim small">{[x.album, x.year, x.suffix?.toUpperCase(), formatDuration(x.duration)].filter(Boolean).join(' · ')}</div>
       </>
     )
   }
@@ -138,9 +139,9 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
   return (
     <section class="stack">
       <div class="row-between">
-        <h2>Impact: {label}</h2>
+        <h2>{t('impact.title', { label })}</h2>
         <button class="link" onClick={onBack} disabled={applying}>
-          ← Back
+          {t('common.back')}
         </button>
       </div>
       {progress && <ProgressBar {...progress} />}
@@ -149,14 +150,14 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
       {scan && (
         <>
           <p>
-            Scanned {plural(scan.scanned, 'playlist')} you own.{' '}
-            {scan.excluded.notOwned > 0 && <>{plural(scan.excluded.notOwned, 'playlist')} owned by others skipped. </>}
-            {scan.excluded.readonly > 0 && <>{plural(scan.excluded.readonly, 'smart or synced playlist')} skipped (read-only). </>}
+            {tn('impact.scanned', scan.scanned)}{' '}
+            {scan.excluded.notOwned > 0 && <>{tn('impact.notOwned', scan.excluded.notOwned)} </>}
+            {scan.excluded.readonly > 0 && <>{tn('impact.readonly', scan.excluded.readonly)} </>}
           </p>
 
           {scan.readErrors.length > 0 && (
             <div class="notice notice-warn">
-              <strong>{plural(scan.readErrors.length, 'playlist')} could not be checked and will not be modified:</strong>
+              <strong>{tn('impact.readErrors', scan.readErrors.length)}</strong>
               <ul>
                 {scan.readErrors.map((e) => (
                   <li key={e.playlist.id}>
@@ -168,7 +169,7 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
           )}
 
           {scan.changes.length === 0 ? (
-            <div class="notice notice-ok">None of your playlists contains these tracks. Nothing to do.</div>
+            <div class="notice notice-ok">{t('impact.none')}</div>
           ) : (
             <ul class="impact">
               {scan.changes.map((c) => (
@@ -180,17 +181,17 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
                       onChange={(e) => setSelected(toggle(selected, c.playlistId, e.currentTarget.checked))}
                       disabled={applying}
                     />
-                    <strong>{c.name}</strong> <Badge kind="info">{plural(c.occurrences.length, 'occurrence')}</Badge>
-                    <span class="dim small"> {plural(c.originalIds.length, 'track')} in total</span>
+                    <strong>{c.name}</strong> <Badge kind="info">{tn('n.occurrences', c.occurrences.length)}</Badge>
+                    <span class="dim small"> {t('impact.inTotal', { tracks: tn('n.tracks', c.originalIds.length) })}</span>
                   </label>
                   <details>
-                    <summary>Details</summary>
+                    <summary>{t('impact.details')}</summary>
                     <table class="occ">
                       <thead>
                         <tr>
                           <th>#</th>
-                          <th>Old</th>
-                          <th>New</th>
+                          <th>{t('impact.colOld')}</th>
+                          <th>{t('impact.colNew')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -206,8 +207,7 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
                   </details>
                   {c.duplicateIds.length > 0 && (
                     <div class="notice notice-warn">
-                      {plural(c.duplicateIds.length, 'new track is', 'new tracks are')} already in this playlist:{' '}
-                      {c.duplicateIds.map(title).join(', ')}. Replacing will create duplicates.
+                      {t('impact.duplicates', { n: c.duplicateIds.length, titles: c.duplicateIds.map(title).join(', ') })}
                       <label class="check">
                         <input
                           type="checkbox"
@@ -215,7 +215,7 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
                           onChange={(e) => setDedupe(toggle(dedupe, c.playlistId, e.currentTarget.checked))}
                           disabled={applying}
                         />
-                        Remove the replaced entries instead (keep the existing ones, {c.originalIds.length - c.dedupedIds.length} fewer tracks)
+                        {tn('impact.dedupe', c.originalIds.length - c.dedupedIds.length)}
                       </label>
                     </div>
                   )}
@@ -227,7 +227,7 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
           {chosen.length > 0 && !confirming && (
             <div class="actions">
               <button class="primary" onClick={() => setConfirming(true)}>
-                Apply to {plural(chosen.length, 'playlist')}…
+                {t('impact.apply', { playlists: tn('n.playlists', chosen.length) })}
               </button>
             </div>
           )}
@@ -235,19 +235,16 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
             <div class="card confirm">
               <p>
                 <strong>
-                  Rewrite {plural(chosen.length, 'playlist')} ({plural(totalOcc, 'replacement')})?
+                  {t('impact.confirmTitle', { playlists: tn('n.playlists', chosen.length), replacements: tn('n.replacements', totalOcc) })}
                 </strong>
               </p>
-              <p>
-                Each playlist is read again first: if it changed since this preview it is skipped. Its current content is saved as a
-                backup you can download and restore afterwards.
-              </p>
+              <p>{t('impact.confirmBody')}</p>
               <div class="actions">
                 <button class="primary" onClick={apply} disabled={applying}>
-                  {applying ? 'Applying…' : 'Yes, apply'}
+                  {applying ? t('impact.applying') : t('impact.yesApply')}
                 </button>
                 <button onClick={() => setConfirming(false)} disabled={applying}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>

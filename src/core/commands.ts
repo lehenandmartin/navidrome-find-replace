@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import type { Track } from './types'
 
 export interface FixPair {
@@ -31,14 +32,14 @@ export function buildFixCommands(pairs: FixPair[], opts: { prefix?: string; now?
   const seenNew = new Set<string>()
   for (const p of pairs) {
     if (!p.old.missing) {
-      skipped.push({ pair: p, reason: 'Old track is not flagged as missing (delete its file and rescan first)' })
+      skipped.push({ pair: p, reason: t('fix.reasonNotMissing') })
     } else if (p.new.missing) {
-      skipped.push({ pair: p, reason: 'New track is itself missing' })
+      skipped.push({ pair: p, reason: t('fix.reasonNewMissing') })
     } else if (seenOld.has(p.old.id)) {
-      skipped.push({ pair: p, reason: 'Old track already used in another command' })
+      skipped.push({ pair: p, reason: t('fix.reasonOldUsed') })
     } else if (seenNew.has(p.new.id)) {
       // The target id is deleted by the first fix, so a second one would fail.
-      skipped.push({ pair: p, reason: 'New track already used as a target in another command' })
+      skipped.push({ pair: p, reason: t('fix.reasonNewUsed') })
     } else {
       seenOld.add(p.old.id)
       seenNew.add(p.new.id)

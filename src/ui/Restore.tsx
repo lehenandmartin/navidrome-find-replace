@@ -3,7 +3,8 @@ import type { Navidrome } from '../api/client'
 import { backupWarnings, parseBackup, type BackupFile } from '../core/backup'
 import { restoreBackup, type RestoreResult } from '../core/workflow'
 import { RestoreResults } from './Report'
-import { ErrorBox, plural, ProgressBar } from './util'
+import { getLocale, t, tn } from '../i18n'
+import { ErrorBox, ProgressBar } from './util'
 
 export function Restore({ client }: { client: Navidrome }) {
   const [backup, setBackup] = useState<BackupFile | null>(null)
@@ -50,16 +51,16 @@ export function Restore({ client }: { client: Navidrome }) {
 
   return (
     <section class="stack">
-      <p>Restore playlists from a backup file downloaded after a replacement. Each playlist gets back its exact former content.</p>
+      <p>{t('restore.intro')}</p>
       <label>
-        Backup file
+        {t('restore.file')}
         <input type="file" accept="application/json,.json" onChange={onFile} />
       </label>
       <ErrorBox error={error} />
       {backup && (
         <div class="card stack">
           <p>
-            Backup from {new Date(backup.createdAt).toLocaleString()} · {plural(backup.playlists.length, 'playlist')}
+            {t('restore.from', { date: new Date(backup.createdAt).toLocaleString(getLocale()), playlists: tn('n.playlists', backup.playlists.length) })}
           </p>
           {warnings.map((w) => (
             <div class="notice notice-warn" key={w}>
@@ -80,7 +81,7 @@ export function Restore({ client }: { client: Navidrome }) {
                       setSelected(n)
                     }}
                   />
-                  {p.name} <span class="dim small">({plural(p.trackIds.length, 'track')})</span>
+                  {p.name} <span class="dim small">({tn('n.tracks', p.trackIds.length)})</span>
                 </label>
               </li>
             ))}
@@ -88,17 +89,17 @@ export function Restore({ client }: { client: Navidrome }) {
           {!confirming ? (
             <div class="actions">
               <button class="primary" disabled={selected.size === 0 || !!progress} onClick={() => setConfirming(true)}>
-                Restore {plural(selected.size, 'playlist')}…
+                {t('restore.button', { playlists: tn('n.playlists', selected.size) })}
               </button>
             </div>
           ) : (
             <div class="confirm">
-              <p>Overwrite the current content of {plural(selected.size, 'playlist')} with the backup?</p>
+              <p>{t('restore.confirm', { playlists: tn('n.playlists', selected.size) })}</p>
               <div class="actions">
                 <button class="primary" onClick={run}>
-                  Yes, restore
+                  {t('restore.yes')}
                 </button>
-                <button onClick={() => setConfirming(false)}>Cancel</button>
+                <button onClick={() => setConfirming(false)}>{t('common.cancel')}</button>
               </div>
             </div>
           )}

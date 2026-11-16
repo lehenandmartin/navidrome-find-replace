@@ -1,4 +1,5 @@
 import { AppError, httpError, subsonicError } from '../core/errors'
+import { t } from '../i18n'
 import { albumFromNative, albumFromSubsonic, playlistFromSubsonic, trackFromNative, trackFromSubsonic } from '../core/mappers'
 import {
   buildSubsonicRequest,
@@ -38,17 +39,13 @@ export class Navidrome implements PlaylistGateway {
     const post = opts.post ?? this.session.formPost
     const req = buildSubsonicRequest(this.session.serverUrl, this.auth, method, params, post)
     if (!post && req.url.length > MAX_GET_URL_LENGTH) {
-      throw new AppError(
-        'protocol',
-        'This request is too large for a URL, and the server does not support form POST requests.',
-        'Update Navidrome to a version that supports the OpenSubsonic formPost extension.',
-      )
+      throw new AppError('protocol', t('err.tooLarge'), t('err.tooLargeDetail'))
     }
     const res = await safeFetch(this.session.serverUrl, req.url, req.init)
     if (!res.ok) throw httpError(res.status, await res.text().catch(() => ''))
     const json = (await readJson(res)) as Obj
     const body = json['subsonic-response'] as Obj | undefined
-    if (!body) throw new AppError('protocol', 'Unexpected answer from the Subsonic API.')
+    if (!body) throw new AppError('protocol', t('err.unexpected'))
     if (body.status !== 'ok') {
       const err = (body.error ?? {}) as Obj
       throw subsonicError(Number(err.code ?? 0), String(err.message ?? ''))
@@ -89,7 +86,7 @@ export class Navidrome implements PlaylistGateway {
   // ---------- Native API ----------
 
   async native(path: string, q: NativeQuery = {}): Promise<{ data: unknown; total?: number }> {
-    if (!this.session.jwt) throw new AppError('not-authorized', 'The Navidrome native API is not available in this session.')
+    if (!this.session.jwt) throw new AppError('not-authorized', t('err.noNative'))
     const qs = nativeQuery(q)
     const res = await safeFetch(this.session.serverUrl, `${this.session.serverUrl}${path}${qs ? '?' + qs : ''}`, {
       headers: { Accept: 'application/json', 'X-ND-Authorization': `Bearer ${this.session.jwt}` },
@@ -159,11 +156,7 @@ export class Navidrome implements PlaylistGateway {
     const entries = arr(p.entry)
     const songCount = Number(p.songCount ?? entries.length)
     if (songCount !== entries.length) {
-      throw new AppError(
-        'protocol',
-        `This playlist has ${songCount - entries.length} hidden entries (probably missing files).`,
-        'The Subsonic API does not return missing files, so rewriting it would delete them. Sign in through the Navidrome login (native API) to handle this playlist.',
-      )
+      throw new AppError('protocol', t('err.hidden', { n: songCount - entries.length }), t('err.hiddenDetail'))
     }
     for (const e of entries) {
       const t = trackFromSubsonic(e)
@@ -176,7 +169,7 @@ export class Navidrome implements PlaylistGateway {
   async write(playlistId: string, trackIds: readonly string[]): Promise<void> {
     if (trackIds.length === 0) {
       // createPlaylist ignores an empty list, so it cannot empty a playlist.
-      throw new AppError('protocol', 'Refusing to write an empty playlist.')
+      throw new AppError('protocol', t('err.emptyWrite'))
     }
     await this.subsonic('createPlaylist', replacePlaylistParams(playlistId, trackIds))
   }

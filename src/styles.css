@@ -545,3 +545,21 @@ pre.code {
   background: var(--accent);
   transition: width 0.2s;
 }
+
+/* ---------- language picker ---------- */
+.lang select {
+  width: auto;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+}
+.login-head {
+  align-items: flex-start;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

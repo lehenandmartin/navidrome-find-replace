@@ -16,12 +16,19 @@ export type PairStatus =
   /** Explicitly excluded by the user. */
   | 'skipped'
 
+/** Why a pair needs attention. Kept as data so the UI can translate it. */
+export type PairReason =
+  | { code: 'position'; d1: number; t1: number; d2: number; t2: number }
+  | { code: 'title' }
+  | { code: 'none' }
+  | { code: 'skipped' }
+
 export interface TrackPair {
   old: Track
   new: Track | null
   status: PairStatus
-  /** Why the pair is uncertain or unmatched, in plain English. */
-  reason?: string
+  /** Why the pair is uncertain, unmatched or skipped. */
+  reason?: PairReason
   /** Title similarity between old and new, 0..1. */
   score?: number
 }
@@ -94,7 +101,7 @@ export function matchAlbums(oldTracks: Track[], newTracks: Track[]): AlbumMatch 
         new: best,
         status: 'uncertain',
         score: bestScore,
-        reason: `Position differs (disc ${disc(o)} track ${o.trackNumber} → disc ${disc(best)} track ${best.trackNumber})`,
+        reason: { code: 'position', d1: disc(o), t1: o.trackNumber, d2: disc(best), t2: best.trackNumber },
       })
     }
   }
@@ -110,10 +117,10 @@ export function matchAlbums(oldTracks: Track[], newTracks: Track[]): AlbumMatch 
         new: c,
         status: 'uncertain',
         score: similarity(n(o), n(c)),
-        reason: 'Title differs',
+        reason: { code: 'title' },
       })
     } else {
-      result.set(o.id, { old: o, new: null, status: 'unmatched', reason: 'No matching track in the new release' })
+      result.set(o.id, { old: o, new: null, status: 'unmatched', reason: { code: 'none' } })
     }
   }
 
@@ -132,7 +139,7 @@ export function activePairs(pairs: TrackPair[]): { old: Track; new: Track }[] {
 
 /** Change the target of a pair by hand. Passing null skips the pair. */
 export function overridePair(pair: TrackPair, target: Track | null): TrackPair {
-  if (!target) return { ...pair, new: null, status: 'skipped', reason: 'Skipped', score: undefined }
+  if (!target) return { ...pair, new: null, status: 'skipped', reason: { code: 'skipped' }, score: undefined }
   return {
     ...pair,
     new: target,
