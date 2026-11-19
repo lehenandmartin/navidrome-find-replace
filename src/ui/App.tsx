@@ -10,11 +10,12 @@ import { Report } from './Report'
 import { Restore } from './Restore'
 import { SuggestionsPanel, useSuggestions } from './Suggestions'
 import { TrackMode } from './TrackMode'
+import { useHandledScope } from './handled'
 import { onLocaleChange, t, type Key } from '../i18n'
 import { Badge, LanguageSelect } from './util'
 
 type Tab = 'track' | 'album' | 'restore'
-type Stage = { kind: 'build' } | { kind: 'impact'; pairs: Replacement[]; label: string } | { kind: 'report'; report: ApplyReport }
+type Stage = { kind: 'build' } | { kind: 'impact'; pairs: Replacement[]; label: string } | { kind: 'report'; report: ApplyReport; handled: string[] }
 
 const TABS: { id: Tab; label: Key }[] = [
   { id: 'track', label: 'tab.track' },
@@ -71,6 +72,7 @@ function Workspace({ client, warning, onDismissWarning, onLogout }: WorkspacePro
   const [stage, setStage] = useState<Stage>({ kind: 'build' })
   const [prefill, setPrefill] = useState<AlbumPrefill | null>(null)
   const isAdmin = client.session.isAdmin
+  useHandledScope(client.session.serverUrl, client.session.username)
   // Missing files are only listed for administrators, through the native API.
   const suggestions = useSuggestions(client, isAdmin && client.hasNative)
 
@@ -130,13 +132,14 @@ function Workspace({ client, warning, onDismissWarning, onLogout }: WorkspacePro
             pairs={stage.pairs}
             label={stage.label}
             onBack={() => setStage({ kind: 'build' })}
-            onDone={(report) => setStage({ kind: 'report', report })}
+            onDone={(report, handled) => setStage({ kind: 'report', report, handled })}
           />
         )}
         {stage.kind === 'report' && (
           <Report
             client={client}
             report={stage.report}
+            handled={stage.handled}
             onNew={() => {
               setPrefill(null)
               setStage({ kind: 'build' })

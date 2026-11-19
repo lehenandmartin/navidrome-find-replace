@@ -8,6 +8,7 @@ import {
   isLiveTrack,
   matchAcrossAlbums,
   rankCandidates,
+  restrictMatch,
   type AlbumInfo,
 } from '../src/core/trackmatch'
 import type { Track } from '../src/core/types'
@@ -161,5 +162,16 @@ describe('matchAcrossAlbums', () => {
       ['ok', undefined],
       ['uncertain', { code: 'duration', seconds: 39 }],
     ])
+  })
+})
+
+describe('restrictMatch', () => {
+  it('keeps only the given old tracks', () => {
+    const old = [tr('Vogue', 'celebration'), tr('Holiday', 'celebration')]
+    const m = matchAcrossAlbums(old, new Map([[old[0].id, [tr('Vogue', 'true-blue')]], [old[1].id, [tr('Holiday', 'true-blue')]]]), albums)
+    const r = restrictMatch(m, new Set([old[1].id]))
+    expect(r.pairs.map((p) => p.old.id)).toEqual([old[1].id])
+    expect([...r.candidates.keys()]).toEqual([old[1].id])
+    expect(coverage(r.pairs)).toEqual({ found: 1, total: 1, albums: 1 })
   })
 })

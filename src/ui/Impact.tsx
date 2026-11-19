@@ -5,7 +5,8 @@ import { describeError } from '../core/errors'
 import { formatDuration } from '../core/mappers'
 import { mapLimit } from '../core/pool'
 import type { PlaylistInfo, Replacement, Track } from '../core/types'
-import { applyChanges, favoritesToTransfer, isEditable, type ApplyReport } from '../core/workflow'
+import { applyChanges, favoritesToTransfer, handledOldIds, isEditable, type ApplyReport } from '../core/workflow'
+import { markHandled } from './handled'
 import { t, tn } from '../i18n'
 import { Badge, ErrorBox, ProgressBar } from './util'
 
@@ -14,7 +15,8 @@ interface Props {
   pairs: Replacement[]
   label: string
   onBack: () => void
-  onDone: (report: ApplyReport) => void
+  /** `handled`: old tracks fully taken care of, hidden from the suggestions from now on. */
+  onDone: (report: ApplyReport, handled: string[]) => void
 }
 
 interface Scan {
@@ -129,15 +131,18 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
     setApplying(true)
     setError(null)
     try {
+      const plans = chosen.map((change) => ({ change, dedupe: dedupe.has(change.playlistId) }))
       const report = await applyChanges(
-        chosen.map((change) => ({ change, dedupe: dedupe.has(change.playlistId) })),
+        plans,
         client,
         { server: client.session.serverUrl, username: client.session.username },
         (label, done, total) => setProgress({ label, done, total }),
         undefined,
         favToAdd,
       )
-      onDone(report)
+      const handled = handledOldIds(pairs, plans, report)
+      markHandled(handled)
+      onDone(report, handled)
     } catch (e) {
       setError(e)
     } finally {

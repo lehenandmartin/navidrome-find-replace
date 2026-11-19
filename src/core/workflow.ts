@@ -152,6 +152,20 @@ export async function applyChanges(
   return { backup, results, favorites: favResult }
 }
 
+/**
+ * Old tracks a replacement took care of: every playlist holding them was updated.
+ * A track only replaced in a skipped or failed playlist is not handled yet.
+ */
+export function handledOldIds(pairs: readonly { old: { id: string } }[], plans: readonly PlannedChange[], report: ApplyReport): string[] {
+  const updated = new Set(report.results.filter((r) => r.status === 'updated').map((r) => r.playlistId))
+  const notDone = new Set<string>()
+  for (const { change } of plans) {
+    if (updated.has(change.playlistId)) continue
+    for (const o of change.occurrences) notDone.add(o.oldId)
+  }
+  return [...new Set(pairs.map((p) => p.old.id))].filter((id) => !notDone.has(id))
+}
+
 export interface RestoreResult {
   playlistId: string
   name: string

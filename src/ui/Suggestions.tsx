@@ -5,11 +5,12 @@ import { mapLimit } from '../core/pool'
 import { findAcrossLibrary } from '../api/trackSearch'
 import { matchAlbums } from '../core/matching'
 import { candidateQuery, fullScore, groupMissingByAlbum, rankCandidates, type MissingAlbum } from '../core/suggest'
-import { coverage, type MultiMatch } from '../core/trackmatch'
+import { coverage, restrictMatch, type MultiMatch } from '../core/trackmatch'
 import type { AlbumSummary } from '../core/types'
 import type { AlbumPrefill } from './AlbumMode'
 import { t, tn } from '../i18n'
 import { Badge, Cover } from './util'
+import { useHandled } from './handled'
 
 interface Candidate {
   album: AlbumSummary
@@ -90,11 +91,28 @@ export function useSuggestions(client: Navidrome, enabled: boolean): Suggestions
 
 const COLLAPSED_COUNT = 3
 
+/** The row without the tracks already replaced this session, or null when nothing is left. */
+function remaining(row: Row, handled: ReadonlySet<string>): Row | null {
+  const tracks = row.missing.tracks.filter((t) => !handled.has(t.id))
+  if (tracks.length === 0) return null
+  if (tracks.length === row.missing.tracks.length) return row
+  let multi = row.tracks
+  if (multi) {
+    const match = restrictMatch(multi.match, new Set(tracks.map((t) => t.id)))
+    const cov = coverage(match.pairs)
+    const albums = [...new Map(match.pairs.flatMap((p) => (p.new ? [[p.new.albumId, p.new.album] as const] : []))).values()]
+    multi = cov.found ? { match, found: cov.found, total: cov.total, albums } : undefined
+  }
+  return { ...row, missing: { ...row.missing, tracks }, tracks: multi }
+}
+
 /** Shown above the tabs. Renders nothing when there are no missing files. */
 export function SuggestionsPanel({ client, state, onUse }: { client: Navidrome; state: SuggestionsState; onUse: (p: AlbumPrefill) => void }) {
   const [showAll, setShowAll] = useState(false)
   const [hidden, setHidden] = useState(false)
-  const { rows, loading, error, reload } = state
+  const { rows: allRows, loading, error, reload } = state
+  const handled = useHandled()
+  const rows = allRows?.flatMap((r) => remaining(r, handled) ?? []) ?? null
 
   if (error) {
     return (

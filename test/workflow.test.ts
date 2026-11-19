@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { computePlaylistChange } from '../src/core/diff'
 import type { PlaylistContent } from '../src/core/types'
 import { parseBackup, serializeBackup } from '../src/core/backup'
-import { applyChanges, favoritesToTransfer, isEditable, removeAddedFavorites, restoreBackup, type FavoritesGateway, type PlaylistGateway } from '../src/core/workflow'
+import { applyChanges, favoritesToTransfer, handledOldIds, isEditable, removeAddedFavorites, restoreBackup, type FavoritesGateway, type PlaylistGateway } from '../src/core/workflow'
 import { track } from './helpers'
 
 class FakeServer implements PlaylistGateway, FavoritesGateway {
@@ -184,5 +184,29 @@ describe('favorites', () => {
   it('rejects a backup whose favorites list is malformed', () => {
     const b = JSON.parse(serializeBackup(parseBackup(serializeBackup({ format: 'navidrome-find-replace-backup', version: 1, createdAt: 'x', server: 's', username: 'u', playlists: [] }))))
     expect(() => parseBackup(JSON.stringify({ ...b, starred: [1] }))).toThrow()
+  })
+})
+
+describe('handledOldIds', () => {
+  const pairs = [
+    { old: { id: 'o1' } },
+    { old: { id: 'o2' } },
+    { old: { id: 'o3' } }, // in no playlist (favorites only, or nothing): handled
+  ]
+
+  it('keeps tracks whose playlists were all updated', async () => {
+    const server = new FakeServer({
+      a: { id: 'a', name: 'A', trackIds: ['o1', 'x'] },
+      b: { id: 'b', name: 'B', trackIds: ['o2', 'o1'] },
+    })
+    const map = new Map([['o1', 'n1'], ['o2', 'n2']])
+    const plans = Object.values(server.playlists).map((p) => ({ change: computePlaylistChange(p, map)!, dedupe: false }))
+    server.failWrite.add('b')
+    const report = await applyChanges(plans, server, meta)
+    // o1 is also in the failed playlist b, o2 only there: both still need work.
+    expect(handledOldIds(pairs, plans, report)).toEqual(['o3'])
+    server.failWrite.clear()
+    const again = await applyChanges([plans[1]], server, meta)
+    expect(handledOldIds(pairs, [plans[1]], again)).toEqual(['o1', 'o2', 'o3'])
   })
 })

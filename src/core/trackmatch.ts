@@ -171,3 +171,11 @@ export function coverage(pairs: TrackPair[]): { found: number; total: number; al
   const withNew = pairs.filter((p) => p.new)
   return { found: withNew.length, total: pairs.length, albums: new Set(withNew.map((p) => p.new!.albumId)).size }
 }
+
+/** Keep only the old tracks in `keep` (e.g. those not replaced yet). */
+export function restrictMatch(match: MultiMatch, keep: ReadonlySet<string>): MultiMatch {
+  return {
+    pairs: match.pairs.filter((p) => keep.has(p.old.id)),
+    candidates: new Map([...match.candidates].filter(([id]) => keep.has(id))),
+  }
+}

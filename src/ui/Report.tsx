@@ -3,13 +3,14 @@ import type { Navidrome } from '../api/client'
 import { backupFileName, serializeBackup, type BackupFile } from '../core/backup'
 import { removeAddedFavorites, restoreBackup, type ApplyReport, type FavoritesResult, type RestoreResult } from '../core/workflow'
 import { t, tn } from '../i18n'
+import { unmarkHandled } from './handled'
 import { Badge, download, ErrorBox, ProgressBar } from './util'
 
 export function downloadBackup(b: BackupFile) {
   download(backupFileName(b), serializeBackup(b))
 }
 
-export function Report({ client, report, onNew }: { client: Navidrome; report: ApplyReport; onNew: () => void }) {
+export function Report({ client, report, handled, onNew }: { client: Navidrome; report: ApplyReport; handled: string[]; onNew: () => void }) {
   const [restore, setRestore] = useState<RestoreResult[] | null>(null)
   const [progress, setProgress] = useState<{ label: string; done: number; total: number } | null>(null)
   const [error, setError] = useState<unknown>(null)
@@ -28,6 +29,8 @@ export function Report({ client, report, onNew }: { client: Navidrome; report: A
       setRestore(await restoreBackup(report.backup.playlists, client, (label, done, total) => setProgress({ label, done, total })))
       // Only the favorites this replacement really added.
       if (favAdded.length) setFavUndone(await removeAddedFavorites(favAdded, client))
+      // Undone: these tracks need a replacement again.
+      unmarkHandled(handled)
     } catch (e) {
       setError(e)
     } finally {
