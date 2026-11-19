@@ -27,6 +27,9 @@ export interface AlbumSummary {
   missing?: boolean
   /** Distinct file formats of the album's tracks, when known. */
   formats?: string[]
+  /** MusicBrainz release types, lower-cased (e.g. "album", "live", "compilation"), when known. */
+  releaseTypes?: string[]
+  compilation?: boolean
 }
 
 export interface PlaylistInfo {

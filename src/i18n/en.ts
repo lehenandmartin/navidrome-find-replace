@@ -13,6 +13,7 @@ export const en = {
   'common.dismiss': 'Dismiss',
   'common.signOut': 'Sign out',
   'common.searching': 'Searching',
+  'common.live': 'live',
 
   // counts
   'n.tracks': { one: '{n} track', other: '{n} tracks' },
@@ -71,6 +72,13 @@ export const en = {
   'album.nativeOnly': 'Albums whose files are already missing can only be found through the Navidrome login (native API).',
   'album.same': 'Old and new release are the same album.',
   'album.preview': 'Preview impact ({tracks})',
+  'album.multiTitle': 'Tracks from {albums}',
+  'album.searchTracks': 'Search track by track across the library',
+  'album.searchTracksHint':
+    'No single album replaces this one? Each track is looked for on every album of the same artist, studio versions first, live versions avoided.',
+  'album.searchingTracks': 'Searching each track',
+  'album.severalReleases': 'several releases',
+  'album.noTrackFound': 'None of these tracks was found on another album.',
   'pairs.old': 'Old track',
   'pairs.status': 'Status',
   'pairs.new': 'New track',
@@ -85,6 +93,8 @@ export const en = {
   'reason.title': 'Title differs',
   'reason.none': 'No matching track in the new release',
   'reason.skipped': 'Skipped',
+  'reason.live': 'Only a live version was found',
+  'reason.duration': 'Duration differs by {seconds} s',
 
   // suggestions
   'sugg.title': 'Suggestions',
@@ -102,6 +112,7 @@ export const en = {
   'sugg.failed': 'search failed',
   'sugg.none': 'no replacement found',
   'sugg.use': 'Use',
+  'sugg.tracksFrom': 'tracks from {albums}',
   'sugg.pick': 'Pick by hand',
 
   // impact

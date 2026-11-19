@@ -56,6 +56,8 @@ export function albumFromSubsonic(a: Obj): AlbumSummary {
     songCount: n(a.songCount),
     coverArt: opt(a.coverArt),
     missing: false,
+    releaseTypes: releaseTypes(a.releaseTypes),
+    compilation: a.isCompilation === true,
   }
 }
 
@@ -69,7 +71,15 @@ export function albumFromNative(a: Obj): AlbumSummary {
     songCount: n(a.songCount),
     coverArt: a.id ? `al-${s(a.id)}` : undefined,
     missing: a.missing === true,
+    releaseTypes: releaseTypes((a.tags as Obj | undefined)?.releasetype),
+    compilation: a.compilation === true,
   }
+}
+
+function releaseTypes(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined
+  // Some taggers store "album;compilation" in a single value.
+  return v.flatMap((x) => String(x).split(/[;/]/)).map((x) => x.trim().toLowerCase()).filter(Boolean)
 }
 
 export function playlistFromSubsonic(p: Obj): PlaylistInfo {
@@ -88,6 +98,6 @@ export function formatsOf(tracks: Track[]): string[] {
 
 export function formatDuration(sec?: number): string {
   if (!sec) return ''
-  const m = Math.floor(sec / 60)
-  return `${m}:${String(Math.round(sec % 60)).padStart(2, '0')}`
+  const total = Math.round(sec)
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 }

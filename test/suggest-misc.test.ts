@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isMixedContent, subsonicError } from '../src/core/errors'
-import { trackFromNative, trackFromSubsonic } from '../src/core/mappers'
+import { formatDuration, trackFromNative, trackFromSubsonic } from '../src/core/mappers'
 import { mapLimit } from '../src/core/pool'
 import { candidateQuery, fullScore, groupMissingByAlbum, rankCandidates } from '../src/core/suggest'
 import { album, track } from './helpers'
@@ -37,6 +37,15 @@ describe('candidate ranking', () => {
     expect(ranked.map((r) => r.album.id)).toEqual(['r', 'd'])
   })
 
+  it('pushes live albums down', () => {
+    const ranked = rankCandidates(missing, [
+      { id: 'live', name: 'Great Album (Live)', artist: 'The Band', songCount: 3 },
+      { id: 'tagged', name: 'Great Album', artist: 'The Band', songCount: 3, releaseTypes: ['album', 'live'] },
+      { id: 'studio', name: 'Great Album (2023 Remaster)', artist: 'The Band', songCount: 3 },
+    ])
+    expect(ranked[0].album.id).toBe('studio')
+  })
+
   it('uses track matching in the full score', () => {
     const c = { id: 'r', name: 'Great Album', artist: 'The Band', songCount: 3 }
     const good = fullScore(missing, c, album('n', ['One', 'Two', 'Three']))
@@ -67,6 +76,15 @@ describe('mappers', () => {
   })
   it('reads a Subsonic child', () => {
     expect(trackFromSubsonic({ id: 's', title: 'T', track: 2, discNumber: 2, suffix: 'flac' })).toMatchObject({ id: 's', trackNumber: 2, discNumber: 2, suffix: 'flac' })
+  })
+})
+
+describe('formatDuration', () => {
+  it('rounds to whole seconds without showing :60', () => {
+    expect(formatDuration(179.6)).toBe('3:00')
+    expect(formatDuration(245.68)).toBe('4:06')
+    expect(formatDuration(59.4)).toBe('0:59')
+    expect(formatDuration(undefined)).toBe('')
   })
 })
 

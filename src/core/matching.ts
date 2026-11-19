@@ -22,6 +22,10 @@ export type PairReason =
   | { code: 'title' }
   | { code: 'none' }
   | { code: 'skipped' }
+  /** Only a live version was found (and the old track is not live). */
+  | { code: 'live' }
+  /** Durations differ by more than a few seconds (an edit or another mix?). */
+  | { code: 'duration'; seconds: number }
 
 export interface TrackPair {
   old: Track

@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import type { Navidrome } from '../api/client'
 import { describeError } from '../core/errors'
 import { mapLimit } from '../core/pool'
+import { findAcrossLibrary } from '../api/trackSearch'
+import { matchAlbums } from '../core/matching'
 import { candidateQuery, fullScore, groupMissingByAlbum, rankCandidates, type MissingAlbum } from '../core/suggest'
+import { coverage, type MultiMatch } from '../core/trackmatch'
 import type { AlbumSummary } from '../core/types'
 import type { AlbumPrefill } from './AlbumMode'
 import { t, tn } from '../i18n'
@@ -11,12 +14,23 @@ import { Badge, Cover } from './util'
 interface Candidate {
   album: AlbumSummary
   score: number
+  /** Old tracks this album can replace. */
+  found: number
+}
+
+/** Replacement found track by track, across several albums. */
+interface TrackSuggestion {
+  match: MultiMatch
+  found: number
+  total: number
+  albums: string[]
 }
 
 interface Row {
   missing: MissingAlbum
   state: 'searching' | 'done' | 'error'
   candidates: Candidate[]
+  tracks?: TrackSuggestion
 }
 
 export interface SuggestionsState {
@@ -48,7 +62,7 @@ export function useSuggestions(client: Navidrome, enabled: boolean): Suggestions
       await mapLimit(groups, 3, async (g, i) => {
         let patch: Partial<Row>
         try {
-          patch = { state: 'done', candidates: await findCandidates(client, g) }
+          patch = { state: 'done', ...(await findCandidates(client, g)) }
         } catch {
           patch = { state: 'error' }
         }
@@ -133,7 +147,11 @@ export function SuggestionsPanel({ client, state, onUse }: { client: Navidrome; 
 
 function SuggestionRow({ client, row, onUse }: { client: Navidrome; row: Row; onUse: (p: AlbumPrefill) => void }) {
   const { missing } = row
-  const [best, ...others] = row.candidates
+  const [bestAlbum, ...otherAlbums] = row.candidates
+  // Track by track wins when it replaces more tracks than the best single album.
+  const tracksFirst = !!row.tracks && row.tracks.found > (bestAlbum?.found ?? 0)
+  const best = tracksFirst ? undefined : bestAlbum
+  const others = tracksFirst ? row.candidates : otherAlbums
   const oldAlbum: AlbumSummary = {
     id: missing.albumId,
     name: missing.album,
@@ -144,6 +162,7 @@ function SuggestionRow({ client, row, onUse }: { client: Navidrome; row: Row; on
     missing: true,
   }
   const use = (c?: Candidate) => onUse({ oldAlbum, oldTracks: missing.tracks, newAlbum: c?.album })
+  const useTracks = () => onUse({ oldAlbum, oldTracks: missing.tracks, multi: row.tracks!.match })
 
   return (
     <li class="suggestion">
@@ -157,7 +176,17 @@ function SuggestionRow({ client, row, onUse }: { client: Navidrome; row: Row; on
             {[missing.artist, missing.year].filter(Boolean).join(' · ')}
             {row.state === 'searching' && ` · ${t('sugg.searching')}`}
             {row.state === 'error' && ` · ${t('sugg.failed')}`}
-            {row.state === 'done' && !best && ` · ${t('sugg.none')}`}
+            {row.state === 'done' && !best && !tracksFirst && ` · ${t('sugg.none')}`}
+            {tracksFirst && (
+              <>
+                {' → '}
+                <strong>{t('sugg.tracksFrom', { albums: tn('n.albums', row.tracks!.albums.length) })}</strong>{' '}
+                <Badge kind={row.tracks!.found === row.tracks!.total ? 'ok' : 'warn'}>
+                  {row.tracks!.found}/{row.tracks!.total}
+                </Badge>
+                <div class="dim small">{row.tracks!.albums.join(', ')}</div>
+              </>
+            )}
             {best && (
               <>
                 {' → '}
@@ -186,21 +215,42 @@ function SuggestionRow({ client, row, onUse }: { client: Navidrome; row: Row; on
           )}
         </div>
       </div>
-      <button onClick={() => use(best)} disabled={row.state === 'searching'}>
-        {best ? t('sugg.use') : t('sugg.pick')}
+      <button onClick={() => (tracksFirst ? useTracks() : use(best))} disabled={row.state === 'searching'}>
+        {best || tracksFirst ? t('sugg.use') : t('sugg.pick')}
       </button>
     </li>
   )
 }
 
-async function findCandidates(client: Navidrome, m: MissingAlbum): Promise<Candidate[]> {
+/**
+ * Replacement for one missing album: the best single albums first; when none of them
+ * replaces every track cleanly, a track-by-track search across the whole library.
+ */
+async function findCandidates(client: Navidrome, m: MissingAlbum): Promise<Pick<Row, 'candidates' | 'tracks'>> {
   const queries = [...new Set([`${candidateQuery(m)} ${m.artist}`.trim(), candidateQuery(m)])]
   const found: AlbumSummary[] = []
   for (const q of queries) found.push(...(await client.search(q, { albums: 15, songs: 0 })).albums)
   const top = rankCandidates(m, found).slice(0, 3)
-  const scored = await mapLimit(top, 2, async (c) => ({ album: c.album, score: fullScore(m, c.album, await client.albumTracks(c.album.id)) }))
-  return scored
+  const scored = await mapLimit(top, 2, async (c) => {
+    const tracks = await client.albumTracks(c.album.id)
+    const pairs = matchAlbums(m.tracks, tracks).pairs
+    return {
+      album: c.album,
+      score: fullScore(m, c.album, tracks),
+      found: pairs.filter((p) => p.status !== 'unmatched').length,
+      complete: pairs.every((p) => p.status === 'ok'),
+    }
+  })
+  const albums = scored
     .flatMap((s) => (s.status === 'fulfilled' ? [s.value] : []))
     .filter((c) => c.score > 0.3)
     .sort((a, b) => b.score - a.score)
+  const candidates: Candidate[] = albums.map(({ album, score, found }) => ({ album, score, found }))
+  if (albums[0]?.complete) return { candidates }
+
+  const match = await findAcrossLibrary(client, m.tracks, m.albumId || undefined)
+  const cov = coverage(match.pairs)
+  if (cov.found === 0) return { candidates }
+  const names = [...new Map(match.pairs.flatMap((p) => (p.new ? [[p.new.albumId, p.new.album] as const] : []))).values()]
+  return { candidates, tracks: { match, found: cov.found, total: cov.total, albums: names } }
 }

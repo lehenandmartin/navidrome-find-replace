@@ -78,6 +78,27 @@ export class Navidrome implements PlaylistGateway {
     return sortTracks(arr((body.album as Obj)?.song).map(trackFromSubsonic))
   }
 
+  private albumInfoCache = new Map<string, Promise<AlbumSummary>>()
+
+  /** Album details, including release types (live, compilation…). Cached for the session. */
+  albumInfo(albumId: string): Promise<AlbumSummary> {
+    let p = this.albumInfoCache.get(albumId)
+    if (!p) {
+      p = (async () => {
+        try {
+          return albumFromSubsonic((await this.subsonic('getAlbum', [['id', albumId]])).album as Obj)
+        } catch (e) {
+          // Albums whose files are all missing are only visible through the native API.
+          if (!this.hasNative) throw e
+          return albumFromNative((await this.native(`/api/album/${encodeURIComponent(albumId)}`)).data as Obj)
+        }
+      })()
+      p.catch(() => this.albumInfoCache.delete(albumId))
+      this.albumInfoCache.set(albumId, p)
+    }
+    return p
+  }
+
   async playlists(): Promise<PlaylistInfo[]> {
     const body = await this.subsonic('getPlaylists')
     return arr((body.playlists as Obj)?.playlist).map(playlistFromSubsonic)

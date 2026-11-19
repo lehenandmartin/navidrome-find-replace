@@ -15,6 +15,7 @@ export const fr: Dictionary = {
   'common.dismiss': 'Masquer',
   'common.signOut': 'Se déconnecter',
   'common.searching': 'Recherche en cours',
+  'common.live': 'live',
 
   'n.tracks': { one: '{n} piste', other: '{n} pistes' },
   'n.playlists': { one: '{n} playlist', other: '{n} playlists' },
@@ -69,6 +70,13 @@ export const fr: Dictionary = {
     'Les albums dont les fichiers sont déjà manquants ne sont trouvables qu’avec la connexion Navidrome (API native).',
   'album.same': 'L’ancienne et la nouvelle édition sont le même album.',
   'album.preview': 'Voir l’impact ({tracks})',
+  'album.multiTitle': 'Pistes issues de {albums}',
+  'album.searchTracks': 'Chercher piste par piste dans la bibliothèque',
+  'album.searchTracksHint':
+    'Aucun album ne remplace celui-ci à lui seul ? Chaque piste est cherchée sur tous les albums du même artiste, en privilégiant les versions studio et en évitant les live.',
+  'album.searchingTracks': 'Recherche de chaque piste',
+  'album.severalReleases': 'plusieurs éditions',
+  'album.noTrackFound': 'Aucune de ces pistes n’a été trouvée sur un autre album.',
   'pairs.old': 'Ancienne piste',
   'pairs.status': 'État',
   'pairs.new': 'Nouvelle piste',
@@ -83,6 +91,8 @@ export const fr: Dictionary = {
   'reason.title': 'Titre différent',
   'reason.none': 'Aucune piste correspondante dans la nouvelle édition',
   'reason.skipped': 'Ignorée',
+  'reason.live': 'Seule une version live a été trouvée',
+  'reason.duration': 'Durée différente de {seconds} s',
 
   'sugg.title': 'Suggestions',
   'sugg.withMissing': '{albums} avec des fichiers manquants',
@@ -99,6 +109,7 @@ export const fr: Dictionary = {
   'sugg.failed': 'échec de la recherche',
   'sugg.none': 'aucun remplacement trouvé',
   'sugg.use': 'Utiliser',
+  'sugg.tracksFrom': 'pistes issues de {albums}',
   'sugg.pick': 'Choisir à la main',
 
   'impact.title': 'Impact : {label}',

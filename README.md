@@ -25,6 +25,7 @@ Everything happens in your browser: the page talks directly to your Navidrome se
 
 - Track → track, or album → album with automatic track pairing (disc and track number, checked against the title) and manual corrections
 - For administrators, albums with missing files are listed on arrival, with the most likely replacement already found
+- Replacements spread over several albums are found track by track (a compilation replaced by the studio albums, or the other way round), preferring studio versions and avoiding live ones
 - Preview of every affected playlist, with duplicate detection
 - Exact order kept, result verified, backup to download, undo
 - Only touches your own playlists; smart playlists are never modified

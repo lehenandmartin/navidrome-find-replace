@@ -1,5 +1,6 @@
 import { matchAlbums, matchQuality, sortTracks } from './matching'
 import { normalizeAlbum, normalizeArtist, similarity } from './normalize'
+import { isLiveAlbum } from './trackmatch'
 import type { AlbumSummary, Track } from './types'
 
 export interface MissingAlbum {
@@ -40,7 +41,9 @@ export function summaryScore(m: MissingAlbum, c: AlbumSummary): number {
   if (artist < 0.6 || album < 0.5) return 0
   // The new release should hold at least the old tracks; a bigger one (deluxe) is fine.
   const countFit = c.songCount >= m.tracks.length ? 1 : c.songCount / Math.max(1, m.tracks.length)
-  return artist * 0.35 + album * 0.45 + countFit * 0.2
+  const score = artist * 0.35 + album * 0.45 + countFit * 0.2
+  // A live album is a poor replacement for a studio one, and the other way round.
+  return isLiveAlbum(c) === isLiveAlbum({ name: m.album }) ? score : score * 0.3
 }
 
 export interface RankedCandidate {
