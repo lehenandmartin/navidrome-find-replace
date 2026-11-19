@@ -1,8 +1,8 @@
 import { useState } from 'preact/hooks'
 import type { Navidrome } from '../api/client'
 import { backupWarnings, parseBackup, type BackupFile } from '../core/backup'
-import { restoreBackup, type RestoreResult } from '../core/workflow'
-import { RestoreResults } from './Report'
+import { removeAddedFavorites, restoreBackup, type FavoritesResult, type RestoreResult } from '../core/workflow'
+import { FavoritesUndone, RestoreResults } from './Report'
 import { getLocale, t, tn } from '../i18n'
 import { ErrorBox, ProgressBar } from './util'
 
@@ -13,11 +13,14 @@ export function Restore({ client }: { client: Navidrome }) {
   const [results, setResults] = useState<RestoreResult[] | null>(null)
   const [progress, setProgress] = useState<{ label: string; done: number; total: number } | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const [removeFavorites, setRemoveFavorites] = useState(true)
+  const [favResult, setFavResult] = useState<FavoritesResult | null>(null)
 
   async function onFile(e: Event) {
     const file = (e.currentTarget as HTMLInputElement).files?.[0]
     setError(null)
     setResults(null)
+    setFavResult(null)
     setBackup(null)
     if (!file) return
     try {
@@ -40,6 +43,7 @@ export function Restore({ client }: { client: Navidrome }) {
           (label, done, total) => setProgress({ label, done, total }),
         ),
       )
+      if (favIds.length) setFavResult(await removeAddedFavorites(favIds, client))
     } catch (e) {
       setError(e)
     } finally {
@@ -47,6 +51,8 @@ export function Restore({ client }: { client: Navidrome }) {
     }
   }
 
+  const backupFavorites = backup?.starred ?? []
+  const favIds = removeFavorites ? backupFavorites : []
   const warnings = backup ? backupWarnings(backup, { server: client.session.serverUrl, username: client.session.username }) : []
 
   return (
@@ -86,15 +92,22 @@ export function Restore({ client }: { client: Navidrome }) {
               </li>
             ))}
           </ul>
+          {backupFavorites.length > 0 && (
+            <label class="check">
+              <input type="checkbox" checked={removeFavorites} onChange={(e) => setRemoveFavorites(e.currentTarget.checked)} />★{' '}
+              {tn('restore.favorites', backupFavorites.length)}
+            </label>
+          )}
           {!confirming ? (
             <div class="actions">
-              <button class="primary" disabled={selected.size === 0 || !!progress} onClick={() => setConfirming(true)}>
+              <button class="primary" disabled={(selected.size === 0 && favIds.length === 0) || !!progress} onClick={() => setConfirming(true)}>
                 {t('restore.button', { playlists: tn('n.playlists', selected.size) })}
               </button>
             </div>
           ) : (
             <div class="confirm">
-              <p>{t('restore.confirm', { playlists: tn('n.playlists', selected.size) })}</p>
+              {selected.size > 0 && <p>{t('restore.confirm', { playlists: tn('n.playlists', selected.size) })}</p>}
+              {favIds.length > 0 && <p>★ {tn('report.undoFavorites', favIds.length)}</p>}
               <div class="actions">
                 <button class="primary" onClick={run}>
                   {t('restore.yes')}
@@ -105,6 +118,7 @@ export function Restore({ client }: { client: Navidrome }) {
           )}
           {progress && <ProgressBar {...progress} />}
           {results && <RestoreResults results={results} />}
+          {favResult && <FavoritesUndone result={favResult} />}
         </div>
       )}
     </section>

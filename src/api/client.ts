@@ -99,6 +99,21 @@ export class Navidrome implements PlaylistGateway {
     return p
   }
 
+  /** One track, missing or not, with its favorite status for the signed-in user. */
+  async song(id: string): Promise<Track> {
+    return trackFromSubsonic((await this.subsonic('getSong', [['id', id]])).song as Obj)
+  }
+
+  /** Add tracks to the signed-in user's favorites. */
+  async star(trackIds: readonly string[]): Promise<void> {
+    if (trackIds.length) await this.subsonic('star', trackIds.map((id): [string, string] => ['id', id]))
+  }
+
+  /** Remove tracks from the signed-in user's favorites. */
+  async unstar(trackIds: readonly string[]): Promise<void> {
+    if (trackIds.length) await this.subsonic('unstar', trackIds.map((id): [string, string] => ['id', id]))
+  }
+
   async playlists(): Promise<PlaylistInfo[]> {
     const body = await this.subsonic('getPlaylists')
     return arr((body.playlists as Obj)?.playlist).map(playlistFromSubsonic)

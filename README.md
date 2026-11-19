@@ -28,6 +28,7 @@ Everything happens in your browser: the page talks directly to your Navidrome se
 - Replacements spread over several albums are found track by track (a compilation replaced by the studio albums, or the other way round), preferring studio versions and avoiding live ones
 - Preview of every affected playlist, with duplicate detection
 - Exact order kept, result verified, backup to download, undo
+- Favorite tracks stay favorites: their new versions are added to your favorites (optional, undone with the rest)
 - Only touches your own playlists; smart playlists are never modified
 - English and French, light and dark themes, works on mobile
 

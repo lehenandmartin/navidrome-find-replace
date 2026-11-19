@@ -14,6 +14,8 @@ export interface Track {
   coverArt?: string
   /** True when Navidrome has flagged the file as missing on disk. */
   missing?: boolean
+  /** In the signed-in user's favorites. */
+  starred?: boolean
   path?: string
 }
 

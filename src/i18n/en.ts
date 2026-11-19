@@ -122,6 +122,16 @@ export const en = {
   'impact.readonly': { one: '{n} smart or synced playlist skipped (read-only).', other: '{n} smart or synced playlists skipped (read-only).' },
   'impact.readErrors': { one: '{n} playlist could not be checked and will not be modified:', other: '{n} playlists could not be checked and will not be modified:' },
   'impact.none': 'None of your playlists contains these tracks. Nothing to do.',
+  'impact.nonePlaylists': 'None of your playlists contains these tracks.',
+  'impact.applyFavorites': 'Add to favorites…',
+  'impact.confirmFavorites': {
+    one: '{n} new track will be added to your favorites.',
+    other: '{n} new tracks will be added to your favorites.',
+  },
+  'fav.title': 'Favorites',
+  'fav.body': { one: '{n} replaced track is in your favorites.', other: '{n} replaced tracks are in your favorites.' },
+  'fav.option': { one: 'Also add the new version to your favorites', other: 'Also add the new versions to your favorites' },
+  'fav.checking': 'Checking favorites…',
   'impact.inTotal': '{tracks} in total',
   'impact.details': 'Details',
   'impact.colOld': 'Old',
@@ -147,6 +157,7 @@ export const en = {
   'progress.checking': 'Checking playlists',
   'progress.updating': 'Updating playlists',
   'progress.restoring': 'Restoring playlists',
+  'progress.favorites': 'Adding favorites',
   'progress.done': 'Done',
 
   // report
@@ -161,6 +172,11 @@ export const en = {
   'report.undoConfirm': 'Restore {playlists} to their content before the change?',
   'report.yesUndo': 'Yes, undo',
   'report.new': 'New replacement',
+  'report.favAdded': { one: '{n} track added to your favorites', other: '{n} tracks added to your favorites' },
+  'report.favFailed': 'Could not add the favorites: {message}',
+  'report.favRemoved': { one: '{n} favorite removed', other: '{n} favorites removed' },
+  'report.favRemoveFailed': 'Could not remove the favorites: {message}',
+  'report.undoFavorites': { one: 'The favorite it added will be removed.', other: 'The {n} favorites it added will be removed.' },
   'result.updated': 'updated',
   'result.skipped': 'skipped',
   'result.failed': 'failed',
@@ -174,6 +190,7 @@ export const en = {
   'restore.button': 'Restore {playlists}…',
   'restore.confirm': 'Overwrite the current content of {playlists} with the backup?',
   'restore.yes': 'Yes, restore',
+  'restore.favorites': { one: 'Also remove the favorite added by the replacement', other: 'Also remove the {n} favorites added by the replacement' },
 
 
   // workflow

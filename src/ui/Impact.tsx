@@ -5,7 +5,7 @@ import { describeError } from '../core/errors'
 import { formatDuration } from '../core/mappers'
 import { mapLimit } from '../core/pool'
 import type { PlaylistInfo, Replacement, Track } from '../core/types'
-import { applyChanges, isEditable, type ApplyReport } from '../core/workflow'
+import { applyChanges, favoritesToTransfer, isEditable, type ApplyReport } from '../core/workflow'
 import { t, tn } from '../i18n'
 import { Badge, ErrorBox, ProgressBar } from './util'
 
@@ -32,6 +32,30 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
   const [dedupe, setDedupe] = useState<Set<string>>(new Set())
   const [confirming, setConfirming] = useState(false)
   const [applying, setApplying] = useState(false)
+  /** New tracks to add to the favorites (null while checking). */
+  const [favorites, setFavorites] = useState<string[] | null>(null)
+  const [transferFavorites, setTransferFavorites] = useState(true)
+
+  // Fresh favorite status of both sides: the search results may be stale.
+  useEffect(() => {
+    let cancelled = false
+    setFavorites(null)
+    ;(async () => {
+      const ids = [...new Set(pairs.flatMap((p) => [p.old.id, p.new.id]))]
+      const fresh = new Map<string, boolean>()
+      await mapLimit(ids, 4, async (id) => {
+        fresh.set(id, !!(await client.song(id)).starred)
+      })
+      const withStars = pairs.map((p) => ({
+        old: { ...p.old, starred: fresh.get(p.old.id) ?? p.old.starred },
+        new: { ...p.new, starred: fresh.get(p.new.id) ?? p.new.starred },
+      }))
+      if (!cancelled) setFavorites(favoritesToTransfer(withStars))
+    })().catch(() => !cancelled && setFavorites([]))
+    return () => {
+      cancelled = true
+    }
+  }, [pairs, client])
 
   const byId = useMemo(() => {
     const m = new Map<string, Track>()
@@ -98,6 +122,8 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
 
   const chosen = scan?.changes.filter((c) => selected.has(c.playlistId)) ?? []
   const totalOcc = chosen.reduce((n, c) => n + c.occurrences.length, 0)
+  const favToAdd = transferFavorites && favorites ? favorites : []
+  const hasWork = chosen.length > 0 || favToAdd.length > 0
 
   async function apply() {
     setApplying(true)
@@ -108,6 +134,8 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
         client,
         { server: client.session.serverUrl, username: client.session.username },
         (label, done, total) => setProgress({ label, done, total }),
+        undefined,
+        favToAdd,
       )
       onDone(report)
     } catch (e) {
@@ -168,7 +196,7 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
           )}
 
           {scan.changes.length === 0 ? (
-            <div class="notice notice-ok">{t('impact.none')}</div>
+            <div class="notice notice-ok">{favorites?.length ? t('impact.nonePlaylists') : t('impact.none')}</div>
           ) : (
             <ul class="impact">
               {scan.changes.map((c) => (
@@ -223,21 +251,46 @@ export function Impact({ client, pairs, label, onBack, onDone }: Props) {
             </ul>
           )}
 
-          {chosen.length > 0 && !confirming && (
+          {favorites === null && <p class="fine">{t('fav.checking')}</p>}
+          {favorites && favorites.length > 0 && (
+            <div class="card stack">
+              <div>
+                <strong>★ {t('fav.title')}</strong> <span class="dim">{tn('fav.body', favorites.length)}</span>
+              </div>
+              <label class="check">
+                <input
+                  type="checkbox"
+                  checked={transferFavorites}
+                  onChange={(e) => setTransferFavorites(e.currentTarget.checked)}
+                  disabled={applying}
+                />
+                {tn('fav.option', favorites.length)}
+              </label>
+            </div>
+          )}
+
+          {hasWork && favorites !== null && !confirming && (
             <div class="actions">
               <button class="primary" onClick={() => setConfirming(true)}>
-                {t('impact.apply', { playlists: tn('n.playlists', chosen.length) })}
+                {chosen.length > 0 ? t('impact.apply', { playlists: tn('n.playlists', chosen.length) }) : t('impact.applyFavorites')}
               </button>
             </div>
           )}
           {confirming && (
             <div class="card confirm">
-              <p>
-                <strong>
-                  {t('impact.confirmTitle', { playlists: tn('n.playlists', chosen.length), replacements: tn('n.replacements', totalOcc) })}
-                </strong>
-              </p>
-              <p>{t('impact.confirmBody')}</p>
+              {chosen.length > 0 && (
+                <p>
+                  <strong>
+                    {t('impact.confirmTitle', { playlists: tn('n.playlists', chosen.length), replacements: tn('n.replacements', totalOcc) })}
+                  </strong>
+                </p>
+              )}
+              {favToAdd.length > 0 && (
+                <p>
+                  <strong>★ {tn('impact.confirmFavorites', favToAdd.length)}</strong>
+                </p>
+              )}
+              {chosen.length > 0 && <p>{t('impact.confirmBody')}</p>}
               <div class="actions">
                 <button class="primary" onClick={apply} disabled={applying}>
                   {applying ? t('impact.applying') : t('impact.yesApply')}

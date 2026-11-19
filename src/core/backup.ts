@@ -17,14 +17,17 @@ export interface BackupFile {
   server: string
   username: string
   playlists: PlaylistBackup[]
+  /** Tracks added to the favorites by the replacement, removed again on restore. */
+  starred?: string[]
 }
 
 export class BackupError extends Error {}
 
 export function createBackup(
   playlists: PlaylistContent[],
-  meta: { server: string; username: string; now?: Date },
+  meta: { server: string; username: string; now?: Date; starred?: string[] },
 ): BackupFile {
+  const starred = meta.starred?.length ? { starred: [...meta.starred] } : {}
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -32,6 +35,7 @@ export function createBackup(
     server: meta.server,
     username: meta.username,
     playlists: playlists.map((p) => ({ id: p.id, name: p.name, trackIds: [...p.trackIds] })),
+    ...starred,
   }
 }
 
@@ -69,6 +73,9 @@ export function parseBackup(text: string): BackupFile {
       throw new BackupError(t('backup.malformed', { n: i + 1 }))
     }
   })
+  if (d.starred !== undefined && !(Array.isArray(d.starred) && d.starred.every(isStr))) {
+    throw new BackupError(t('backup.incomplete'))
+  }
   return d as BackupFile
 }
 

@@ -23,6 +23,7 @@ export function trackFromSubsonic(c: Obj): Track {
     coverArt: opt(c.coverArt),
     path: opt(c.path),
     missing: false,
+    starred: !!c.starred,
   }
 }
 
@@ -43,6 +44,7 @@ export function trackFromNative(m: Obj): Track {
     coverArt: m.albumId ? `al-${s(m.albumId)}` : undefined,
     path: opt(m.path),
     missing: m.missing === true,
+    starred: m.starred === true,
   }
 }
 
